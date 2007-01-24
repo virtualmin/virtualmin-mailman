@@ -1,0 +1,4 @@
+mailman_dir=/usr/lib/mailman
+mode=1
+cgiuser=
+mailman_var=/var/lib/mailman

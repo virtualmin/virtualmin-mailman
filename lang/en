@@ -1,0 +1,104 @@
+feat_name=Mailman
+feat_losing=Mailman mailing lists will be disabled for the domain
+feat_disname=Mailman
+feat_label=Allow Mailman mailing lists?
+feat_emailman=The Mailman directory $1 does not exist or is incorrect.
+feat_emailman2=The Mailman data directory $1 does not exist or is incorrect.
+feat_efile=The Postfix file $1 used for enabling Mailman does not exist. You may want to adjust the configuration of this module to use normal virtusers.
+feat_epostfix=Mailman mailing lists are only available when the Postfix mail server is used.
+feat_emailmancmd=The mailman program $1 was not found on your system.
+feat_edepmail=Mailman cannot be enabled unless mail is.
+feat_backup=Creating backup of Mailman mailing lists ..
+feat_failed=.. TAR failed : $1
+feat_restore=Restoring Mailman mailing lists ..
+feat_backupname=Mailman mailing lists
+feat_archive=Include archives in backup
+feat_barchive=Creating backup of Mailman archives directories ..
+feat_rarchive=Restoring Mailman archives directories ..
+feat_nolists=.. no lists found
+feat_nolists2=.. no lists found in backup
+feat_emailmanuser=The Unix user $1 has the shell $2, which would prevent Mailman commands from being run as that user
+
+setup_map=Adding to Mailman domains list ..
+setup_alias=Adding Mailman alias and redirects to website configuration ..
+
+delete_map=Removing from Mailman domains list ..
+delete_missing=.. domain not found!
+delete_alias=Removing Mailman alias and redirects from website configuration ..
+delete_lists=Deleting $1 mailing lists ..
+
+save_map=Updating Mailman domains list ..
+
+index_title=Mailman Mailing Lists
+index_version=Mailman $1
+index_list=List name
+index_dom=Domain name
+index_desc=Description
+index_none=No mailing lists have been created yet.
+index_none2=No mailing lists that you have access to have been created yet.
+index_header=Add mailing list
+index_action=Actions
+index_mems=Members
+index_return=mailing lists
+index_lang=List language
+index_email=Administration email
+index_pass=Administration password
+index_fv=From Virtualmin domain
+index_man=Manage
+index_reset=Reset Password
+index_max=You are not allowed to add any more mailing lists.
+index_canadd0=Based on your limits, $1 additional mailing lists can be added.
+
+add_err=Failed to create mailing list
+add_ename=Missing or invalid name
+add_edom=Missing or invalid domain name
+add_eclash=A list with the same name already exists
+add_evdom=No Virtualmin domain found
+add_eemail=Missing or invalid email address
+add_epass=Missing password
+
+delete_err=Failed to delete list
+delete_ecannot=You are not allowed to delete this list
+delete_edom=Failed to find Virtualmin domain
+delete_title=Delete Mailing List
+delete_rusure=Are you sure you want to delete the mailing list $1?
+delete_confirm=Yes, Delete It
+
+mems_title=List Members
+mems_sub=For list $1
+mems_ecannot=You are not allowed to edit this list.
+mems_none=This list does not have any members yet.
+mems_header=Add List Member
+mems_email=Email address
+mems_digest=Members gets digests?
+mems_welcome=Send welcome email?
+mems_admin=Notify list administrator?
+mems_default=List default
+mems_add=Add Member
+mems_type=Type
+mems_digesty=Digest
+mems_digestn=Regular
+
+addmem_err=Failed to add list member
+addmem_eemail=Missing or invalid email address
+
+deletemem_err=Failed to remove list member
+deletemem_emem=Member not found!
+
+edit_eurl=Invalid URL
+edit_ecannot=You are not allowed to manage this list
+
+reset_title=Reset List Password
+reset_doing=Now resetting the mailing list to a random password ..
+reset_failed=.. failed!
+reset_done=.. done. The new password has been emailed to $1.
+
+limits_max=Maximum number of Mailman mailing lists
+limits_emax=Missing or invalid maximum number of Mailman mailing lists
+
+links_link=Manage Mailing Lists
+
+tmpl_limit=Default limit on number of Mailman mailing lists
+tmpl_unlimit=Unlimited
+tmpl_atmost=At most
+tmpl_elimit=Missing or invalid limit on number of Mailman mailing lists

@@ -1,0 +1,103 @@
+feat_name=Mailman
+feat_losing=Bu alanad&#305; için Mailman e-posta listeleri engellenecektir.
+feat_disname=Mailman
+feat_label=Mailman e-posta listelerine izin ver?
+feat_emailman=Mailman klasörü $1 yok veya yanl&#305;&#351;.
+feat_emailman2=Mailman data klasörü $1 yok veya yanl&#305;&#351;.
+feat_efile=Gerekli postfix dosyas&#305; ;$1 olu&#351;turulmam&#305;&#351;. Postfix konfigürasyonunuzu düzeltiniz.
+feat_epostfix=Mailman e-posta listeleri e-posta sunucusu olarak posfix kullan&#305;ld&#305;&#287;&#305;nda çal&#305;&#351;t&#305;rabilir.
+feat_edepmail=E-posta sunucusu çal&#305;&#351;madan Mailman çal&#305;&#351;amaz.
+feat_backup=Mailman e-posta listeleri yede&#287;i olu&#351;turuluyor..
+feat_failed=.. TAR i&#351;lemi ba&#351;ar&#305;s&#305;z : $1
+feat_restore=Mailman e-posta listeleri yedekten geri yükleniyor..
+feat_backupname=Mailman e-posta listeleri
+feat_archive=Ar&#351;ivleri yede&#287;e dahil et
+feat_barchive=Mailman e-posta listeleri ar&#351;iv klasörleri yede&#287;i olu&#351;turuluyor..
+feat_rarchive=Mailman e-posta listeleri ar&#351;iv klasörleri yedekten geri yükleniyor..
+feat_nolists=.. herhangi bir liste bulunamad&#305;
+feat_nolists2=.. yedekte herhangi bir liste bulunamad&#305;
+feat_emailmanuser=Unix kullan&#305;c&#305;s&#305; $1 ; $2 kabuk yetkisine sahip. Mailman bu yetkilerle çal&#305;&#351;amaz.. 
+
+setup_map=Mailman alanad&#305; listesine ekleniyor ..
+setup_alias=Mailman alias olarak web sitesi konfigürasyonuna ekleniyor..
+
+delete_map=Mailman alanad&#305; listesinden ç&#305;kar&#305;l&#305;yor..
+delete_missing=.. alanad&#305; bulunamad&#305;!
+delete_alias=Mailman alias olarak websitesi konfigürasyonundan ç&#305;kar&#305;l&#305;yor..
+delete_lists=$1 e-posta listesi siliniyor..
+
+save_map=Mailman alanad&#305; listeleri güncelleniyor...
+
+index_title=Mailman E-Posta Listeleri
+index_version=Mailman $1
+index_list=Liste ismi
+index_dom=Alanad&#305; ismi
+index_desc=Aç&#305;klama
+index_none=Henüz hiçbir e-posta listesi olu&#351;turulmam&#305;&#351;.
+index_none2=Eri&#351;me izniniz olan hiçbir e-posta listesi henüz olu&#351;turulmam&#305;&#351;.
+index_header=E-posta listesi ekle
+index_action=&#304;&#351;lemler
+index_mems=Üyeler
+index_return=E-posta listeleri
+index_lang=Liste dili
+index_email=Yönetim e-postas&#305;
+index_pass=Yönetim &#351;ifresi
+index_fv=Virtualmin alanad&#305;nda belirlenmi&#351;
+index_man=Yönet
+index_reset=&#350;ifre S&#305;f&#305;rla
+index_max=Daha fazla e-posta listesi eklemek için izniniz yok.
+index_canadd0=Limitlerinize göre, $1 adet daha e-posta listesi eklenebilir.
+
+add_err=E-posta listesi olu&#351;turulamad&#305;
+add_ename=Eksik veya geçersiz isim
+add_edom=Eksik veya geçersiz alanad&#305; ismi
+add_eclash=Bu isimle zaten bir liste mevcut
+add_evdom=Virtualmin alanad&#305; bulunamad&#305;
+add_eemail=Eksik veya geçersiz e-posta
+add_epass=Eksik &#351;ifre
+
+delete_err=Liste silinemedi
+delete_ecannot=Bu listeyi silme yetkiniz yok
+delete_edom=Virtualmin alanad&#305; bulunamad&#305;
+delete_title=E-posta Listesini sil
+delete_rusure=$1 listesini silmek istedi&#287;inizden emin misiniz?
+delete_confirm=Evet, sil
+
+mems_title=Üyeleri Listele
+mems_sub=$1 listesi için
+mems_ecannot=Bu listeyi düzenleyemezsiniz.
+mems_none=Bu listenin hiçbir üyesi yok.
+mems_header=Listeye Üye Ekle
+mems_email=E-posta adresi
+mems_digest=Üyeler digest als&#305;nm&#305;?
+mems_welcome=Ho&#351;geldin e-postas&#305; yollans&#305;n m&#305;?
+mems_admin=Liste yönetimi bilgilendirilsin mi?
+mems_default=Liste varsay&#305;lan&#305;
+mems_add=Üye Ekle
+mems_type=Tür
+mems_digesty=Digest
+mems_digestn=Regular
+
+addmem_err=Listeye üye eklenemedi
+addmem_eemail=Eksik veya geçersiz e-posta
+
+deletemem_err=Listeden üye ç&#305;kar&#305;lamad&#305;
+deletemem_emem=Üye bulunamad&#305;!
+
+edit_eurl=Geçersiz URL
+edit_ecannot=Bu listeyi yönetme yetkiniz yok
+
+reset_title=Liste &#351;ifresini s&#305;f&#305;rla
+reset_doing=E-posta listesi &#351;ifresi s&#305;f&#305;rlan&#305;yor ..
+reset_failed=.. ba&#351;ar&#305;s&#305;z!
+reset_done=.. tamamland&#305;. Yeni &#351;ifre $1 e-posta ile yolland&#305;.
+
+limits_max=Maksimum Mailman e-posta listesi adeti
+limits_emax=Eksik veya geçersiz maksimum Mailman e-posta listesi adeti
+
+links_link=Mailman Listelerini Yönet
+
+tmpl_limit=Varsay&#305;lan Mailman e-posta listesi adet limiti
+tmpl_unlimit=Limitsiz
+tmpl_atmost=En fazla
+tmpl_elimit=Eksik veya geçersiz Mailman e-posta listesi adet limiti

@@ -1,0 +1,3 @@
+mailman_dir=/var/lib/mailman
+mode=1
+alt_mailman_cmd=/usr/lib/mailman/mail/mailman

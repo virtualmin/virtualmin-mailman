@@ -1,0 +1,10 @@
+---- Changes since 1.0 ----
+Added support for other mail systems apart from Postfix. Thanks to Olimont.com for sponsoring this feature.
+List members can now be added and removed.
+---- Changes since 3.2 ----
+Improved Ubuntu support (mailman command location and output from admin scripts).
+Added check for missing mailman program.
+---- Changes since 3.3 ----
+Changed API to allow creation of mailing lists without a domain.
+---- Changes since 3.4 ----
+When a mailing list is created in a virtual server with a website, it is configured so that the /mailman and /cgi-bin/mailman URLs actually work. This is done by running the mailman programs via Webmin, where they get executed as the correct user regardless of the virtual host suexec settings.
