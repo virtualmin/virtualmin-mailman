@@ -96,7 +96,7 @@ reset_done=.. done. The new password has been emailed to $1.
 limits_max=Maximum number of Mailman mailing lists
 limits_emax=Missing or invalid maximum number of Mailman mailing lists
 
-links_link=Manage Mailing Lists
+links_link=Mailing Lists
 
 tmpl_limit=Default limit on number of Mailman mailing lists
 tmpl_unlimit=Unlimited

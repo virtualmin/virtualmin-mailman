@@ -312,7 +312,9 @@ sub feature_links
 local ($d) = @_;
 return ( { 'mod' => $module_name,
 	   'desc' => $text{'links_link'},
-	   'page' => 'index.cgi?show='.$d->{'dom'} } );
+	   'page' => 'index.cgi?show='.$d->{'dom'},
+	   'cat' => 'services',
+	 } );
 }
 
 # feature_backup(&domain, file, &opts, &all-opts)
