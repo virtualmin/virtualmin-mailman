@@ -21,7 +21,12 @@ $httphost = $ENV{'HTTP_HOST'};
 
 $temp = &transname();
 open(TEMP, ">$temp");
-read(STDIN, $qs, $ENV{'CONTENT_LENGTH'});
+if (defined(&read_fully)) {
+	&read_fully(STDIN, \$qs, $ENV{'CONTENT_LENGTH'});
+	}
+else {
+	read(STDIN, $qs, $ENV{'CONTENT_LENGTH'});
+	}
 print TEMP $qs;
 close(TEMP);
 $cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
