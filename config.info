@@ -3,3 +3,4 @@ mailman_var=Mailman data directory,3,Same as base directory
 mailman_cmd=Full path to mailman command,3,Automatic
 mode=List alias creation mode,1,1-Add normal virtusers,0-Use Postfix maillist map
 cgiuser=User to run mailman programs as,3,Apache webserver user
+webminurl=URL to Webmin in Apache configuration,3,Automatic

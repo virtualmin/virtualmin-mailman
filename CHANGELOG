@@ -8,3 +8,6 @@ Added check for missing mailman program.
 Changed API to allow creation of mailing lists without a domain.
 ---- Changes since 3.4 ----
 When a mailing list is created in a virtual server with a website, it is configured so that the /mailman and /cgi-bin/mailman URLs actually work. This is done by running the mailman programs via Webmin, where they get executed as the correct user regardless of the virtual host suexec settings.
+---- Changes since 3.6 ----
+Added a Module Config option for the Webmin URL to use in the Apache config.
+Redirects are now added to both the SSL and non-SSL Apache virtual hosts.

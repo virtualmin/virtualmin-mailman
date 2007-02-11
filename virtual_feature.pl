@@ -92,9 +92,14 @@ if ($_[0]->{'web'}) {
 	&virtual_server::require_apache();
 	&$virtual_server::first_print($text{'setup_alias'});
 	local $conf = &apache::get_config();
-	local ($virt, $vconf) = &virtual_server::get_apache_virtual(
-		$_[0]->{'dom'}, $_[0]->{'web_port'});
-	if ($virt) {
+	local @ports = ( $_[0]->{'web_port'},
+			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
+	local $added;
+	foreach my $p (@ports) {
+		local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+			$_[0]->{'dom'}, $p);
+		next if (!$virt);
+
 		# Add lists.$domain alias
 		local @sa = &apache::find_directive("ServerAlias", $vconf);
 		push(@sa, "lists.$_[0]->{'dom'}");
@@ -103,7 +108,10 @@ if ($_[0]->{'web'}) {
 		# Add wrapper redirects
 		local @rm = &apache::find_directive("RedirectMatch", $vconf);
 		local $webminurl;
-		if ($ENV{'SERVER_PORT'}) {
+		if ($config{'webminurl'}) {
+			$webminurl = $config{'webminurl'};
+			}
+		elsif ($ENV{'SERVER_PORT'}) {
 			# Running inside Webmin
 			$webminurl = uc($ENV{'HTTPS'}) eq "ON" ? "https"
 							       : "http";
@@ -125,7 +133,9 @@ if ($_[0]->{'web'}) {
 				}
 			}
 		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
-
+		$added++;
+		}
+	if ($added) {
 		&flush_file_lines();
 		&virtual_server::register_post_action(
 		    defined(&main::restart_apache) ? \&main::restart_apache
@@ -213,9 +223,14 @@ if ($_[0]->{'web'}) {
 	&virtual_server::require_apache();
 	&$virtual_server::first_print($text{'delete_alias'});
 	local $conf = &apache::get_config();
-	local ($virt, $vconf) = &virtual_server::get_apache_virtual(
-		$_[0]->{'dom'}, $_[0]->{'web_port'});
-	if ($virt) {
+	local @ports = ( $_[0]->{'web_port'},
+			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
+	local $deleted;
+	foreach my $p (@ports) {
+		local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+			$_[0]->{'dom'}, $p);
+		next if (!$virt);
+
 		# Remove server alias
 		local @sa = &apache::find_directive("ServerAlias", $vconf);
 		@sa = grep { $_ ne "lists.$_[0]->{'dom'}" } @sa;
@@ -227,7 +242,9 @@ if ($_[0]->{'web'}) {
 			@rm = grep { !/^\Q$p\E\// } @rm;
 			}
 		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
-
+		$deleted++;
+		}
+	if ($deleted) {
 		&flush_file_lines();
 		&virtual_server::register_post_action(
 		    defined(&main::restart_apache) ? \&main::restart_apache

@@ -43,7 +43,7 @@ while(<CGI>) {
 	if (/^Set-Cookie:/i) {
 		s/\/mailman/\/$module_name/g;
 		}
-	s/\/icons\/(\S+\.(gif|png|jpg|jpeg))/\/$module_name\/icons.cgi\/$1/g;
+	s/\/(icons|mailmanicons)\/(\S+\.(gif|png|jpg|jpeg))/\/$module_name\/icons.cgi\/$2/g;
 	if (/^(\S+):\s*(.*)\r?\n$/ && !$doneheaders) {
 		$headers .= $_;
 		}
