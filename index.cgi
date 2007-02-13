@@ -2,6 +2,7 @@
 # Show all mailman lists that this user can manage
 
 require './virtualmin-mailman-lib.pl';
+&ReadParse();
 
 $ver = &get_mailman_version();
 &ui_print_header(undef, $text{'index_title'}, "", undef, 1, 1, 0,
