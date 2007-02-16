@@ -1,5 +1,5 @@
 
-require 'virtualmin-mailman-lib.pl';
+do 'virtualmin-mailman-lib.pl';
 
 sub module_install
 {
