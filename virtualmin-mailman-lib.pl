@@ -100,7 +100,7 @@ if ($config{'mode'} == 0) {
 if ($gconfig{'os_type'} !~ /-linux$/) {
 	local $user = &get_mailman_apache_user();
 	local @uinfo = getpwnam($user);
-	if (@uinfo || $uinfo[8] =~ /nologin/) {
+	if (@uinfo && $uinfo[8] =~ /nologin/) {
 		return &text('feat_emailmanuser', "<tt>$user</tt>", "<tt>$uinfo[8]</tt>");
 		}
 	}
