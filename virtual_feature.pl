@@ -300,7 +300,7 @@ sub feature_limits_input
 {
 local ($d) = @_;
 return undef if (!$d->{$module_name});
-return &ui_table_row($text{'limits_max'},
+return &ui_table_row(&hlink($text{'limits_max'}, "limits_max"),
 	&ui_opt_textbox($input_name."limit", $d->{$module_name."limit"},
 			4, $virtual_server::text{'form_unlimit'},
 			   $virtual_server::text{'form_atmost'}));
