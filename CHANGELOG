@@ -11,3 +11,5 @@ When a mailing list is created in a virtual server with a website, it is configu
 ---- Changes since 3.6 ----
 Added a Module Config option for the Webmin URL to use in the Apache config.
 Redirects are now added to both the SSL and non-SSL Apache virtual hosts.
+---- Changes since 3.8 ----
+Fixed backups of mailing lists with no public or private archives.

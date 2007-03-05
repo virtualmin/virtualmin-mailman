@@ -375,19 +375,42 @@ else {
 	if ($opts->{'archive'} && -d $archives_dir) {
 		# Tar up private dir
 		&$virtual_server::first_print($text{'feat_barchive'});
-		local $out = &backquote_command("cd $archives_dir/private && tar cf ".quotemeta($file."_private")." ".join(" ", grep { -e "$archives_dir/private/$_" } map { $_->{'list'}, "$_->{'list'}.mbox" } @lists)." 2>&1");
-		if ($?) {
-			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
-			return 0;
+		local $anyfiles = 0;
+		local @files = grep { -e "$archives_dir/private/$_" }
+			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
+		if (@files) {
+			local $out = &backquote_command(
+				"cd $archives_dir/private && tar cf ".
+				quotemeta($file."_private")." ".
+				join(" ", @files)." 2>&1");
+			if ($?) {
+				&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
+				return 0;
+				}
+			$anyfiles += scalar(@files);
 			}
 
 		# Tar up public dir
-		local $out = &backquote_command("cd $archives_dir/public && tar cf ".quotemeta($file."_public")." ".join(" ", grep { -e "$archives_dir/public/$_" } map { $_->{'list'}, "$_->{'list'}.mbox" } @lists)." 2>&1");
-		if ($?) {
-			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
-			return 0;
+		local @files = grep { -e "$archives_dir/public/$_" }
+			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
+		if (@files) {
+			local $out = &backquote_command(
+				"cd $archives_dir/public && tar cf ".
+				quotemeta($file."_public")." ".
+				join(" ", @files)." 2>&1");
+			if ($?) {
+				&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
+				return 0;
+				}
+			$anyfiles += scalar(@files);
 			}
-		&$virtual_server::second_print($virtual_server::text{'setup_done'});
+		if ($anyfiles) {
+			&$virtual_server::second_print(
+				$virtual_server::text{'setup_done'});
+			}
+		else {
+			&$virtual_server::second_print($text{'feat_noarchive'});
+			}
 		}
 
 	return 1;
@@ -413,6 +436,10 @@ if (-r $file."_public") {
 	foreach my $l (@lists) {
 		&system_logged("rm -rf ".quotemeta("$archives_dir/public/$l"));
 		&system_logged("rm -rf ".quotemeta("$archives_dir/public/$l.mbox"));
+		}
+	}
+if (-r $file."_private") {
+	foreach my $l (@lists) {
 		&system_logged("rm -rf ".quotemeta("$archives_dir/private/$l"));
 		&system_logged("rm -rf ".quotemeta("$archives_dir/private/$l.mbox"));
 		}
@@ -457,19 +484,25 @@ else {
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 
 	# If the backup included archives, restore them too
-	if (-r $file."_public") {
+	if (-r $file."_public" || -r $file."_private") {
 		&$virtual_server::first_print($text{'feat_rarchive'});
+		}
+	if (-r $file."_public") {
 		local $out = &backquote_command("cd $archives_dir/public && tar xf ".quotemeta($file."_public")." 2>&1");
 		if ($?) {
 			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 			return 0;
 			}
+		}
+	if (-r $file."_private") {
 		local $out = &backquote_command("cd $archives_dir/private && tar xf ".quotemeta($file."_private")." 2>&1");
 		if ($?) {
 			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 			return 0;
 			}
 
+		}
+	if (-r $file."_public" || -r $file."_private") {
 		&$virtual_server::second_print($virtual_server::text{'setup_done'});
 		}
 

@@ -14,6 +14,7 @@ feat_restore=Restoring Mailman mailing lists ..
 feat_backupname=Mailman mailing lists
 feat_archive=Include archives in backup
 feat_barchive=Creating backup of Mailman archives directories ..
+feat_noarchive=.. no archived messages found.
 feat_rarchive=Restoring Mailman archives directories ..
 feat_nolists=.. no lists found
 feat_nolists2=.. no lists found in backup
