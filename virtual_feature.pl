@@ -275,13 +275,6 @@ if (@lists) {
 	}
 }
 
-# feature_bandwidth(&domain, start, &bw-hash)
-# Searches through log files for records after some date, and updates the
-# day counters in the given hash
-sub feature_bandwidth
-{
-}
-
 # feature_webmin(&main-domain, &all-domains)
 # Returns a list of webmin module names and ACL hash references to be set for
 # the Webmin user when this feature is enabled
@@ -549,7 +542,7 @@ else {
 	}
 }
 
-# virtusers_ignore(&domain)
+# virtusers_ignore([&domain])
 # Returns a list of virtuser addresses (like foo@bar.com) that are used by
 # mailing lists.
 sub virtusers_ignore
@@ -557,10 +550,11 @@ sub virtusers_ignore
 local ($d) = @_;
 local @rv;
 foreach my $l (&list_lists()) {
-	if ($l->{'dom'} eq $d->{'dom'}) {
-		push(@rv, $l->{'list'}."\@".$d->{'dom'});
+	if ($d && $l->{'dom'} eq $d->{'dom'} ||
+	    !$d && $l->{'dom'}) {
+		push(@rv, $l->{'list'}."\@".$l->{'dom'});
 		foreach my $a (@mailman_aliases) {
-			push(@rv, $l->{'list'}."-".$a."\@".$d->{'dom'});
+			push(@rv, $l->{'list'}."-".$a."\@".$l->{'dom'});
 			}
 		}
 	}
