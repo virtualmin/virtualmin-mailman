@@ -94,6 +94,13 @@ if ($config{'mode'} == 0) {
 		if (!-r $maillist_file);
 	local %vconfig = &foreign_config("virtual-server");
 	return $text{'feat_epostfix'} if ($vconfig{'mail_system'} != 0);
+	&foreign_require("postfix", "postfix-lib.pl");
+	local @files = &postfix::get_maps_files(
+			&postfix::get_real_value($transport_map));
+	return $text{'feat_etransport'} if (!@files);
+	local @files = &postfix::get_maps_files(
+			&postfix::get_real_value($maillist_map));
+	return $text{'feat_emaillist'} if (!@files);
 	}
 # Make sure the www user has a valid shell, for use with su. Not needed on
 # Linux, as we can pass -s to the su command.
