@@ -18,6 +18,10 @@ $d = &virtual_server::get_domain_by("dom", $list->{'dom'});
 $cgiuser = &get_mailman_apache_user($d);
 $realhost = &get_system_hostname();
 $httphost = $ENV{'HTTP_HOST'};
+if ($httphost !~ /:\d+$/) {
+	# Need to add the port
+	$httphost .= ":".$ENV{'SERVER_PORT'};
+	}
 
 $temp = &transname();
 open(TEMP, ">$temp");
@@ -34,7 +38,9 @@ $prot = $ENV{'HTTPS'} eq 'ON' ? "https" : "http";
 open(CGI, "$cmd <$temp |");
 while(<CGI>) {
 	if (!/<input.*type=\S*text/i) {
-		s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/unauthenticated\/$2.cgi/g;
+		if (s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/unauthenticated\/$2.cgi/g == 0) {
+			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/unauthenticated\/$2.cgi/g;
+			}
 		s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
 		s/(http|https):\/\/$d->{'dom'}\//$prot:\/\/$httphost\//g;
 		}
