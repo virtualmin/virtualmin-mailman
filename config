@@ -1,2 +1,3 @@
 mailman_dir=/home/mailman
 mode=1
+no_redirects=0

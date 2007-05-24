@@ -5,7 +5,9 @@ require './virtualmin-mailman-lib.pl';
 &ReadParse();
 &error_setup($text{'delete_err'});
 
+@lists = &list_lists();
 ($listname) = grep { $_ ne "confirm" } keys %in;
+
 if ($listname =~ /^mems_(\S+)$/) {
 	# Actually editing members .. redirect
 	&redirect("list_mems.cgi?list=$1");
@@ -13,7 +15,17 @@ if ($listname =~ /^mems_(\S+)$/) {
 	}
 elsif ($listname =~ /^man_(\S+)$/) {
 	# Actually managing list .. redirect
-	&redirect("admin.cgi/$1");
+	if ($config{'manage_url'}) {
+		# Custom URL
+		($list) = grep { $_->{'list'} eq $1 } @lists;
+		$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
+		&redirect(&virtual_server::substitute_domain_template(
+				$config{'manage_url'}, $d));
+		}
+	else {
+		# Internal CGI wrappers
+		&redirect("admin.cgi/$1");
+		}
 	exit;
 	}
 elsif ($listname =~ /^reset_(\S+)$/) {
@@ -21,7 +33,8 @@ elsif ($listname =~ /^reset_(\S+)$/) {
 	&redirect("reset.cgi?list=$1");
 	exit;
 	}
-@lists = &list_lists();
+
+# Get the list
 ($list) = grep { $_->{'list'} eq $listname } @lists;
 &can_edit_list($list) || &error($text{'delete_ecannot'});
 $d = &virtual_server::get_domain_by("dom", $list->{'dom'});

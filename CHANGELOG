@@ -13,3 +13,6 @@ Added a Module Config option for the Webmin URL to use in the Apache config.
 Redirects are now added to both the SSL and non-SSL Apache virtual hosts.
 ---- Changes since 3.8 ----
 Fixed backups of mailing lists with no public or private archives.
+---- Changes since 3.9 ----
+Fixed bugs with page link re-writing.
+Added Module Config settings for adding Redirects and destination of Manage button.

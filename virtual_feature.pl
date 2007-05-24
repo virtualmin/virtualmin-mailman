@@ -91,7 +91,7 @@ if ($config{'mode'} == 0) {
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
 
-if ($_[0]->{'web'}) {
+if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	# Add server alias, and redirect for /cgi-bin/mailman and /mailman
 	# to anonymous wrappers
 	&virtual_server::require_apache();
@@ -223,7 +223,7 @@ if ($config{'mode'} == 0) {
 		}
 	}
 
-if ($_[0]->{'web'}) {
+if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	# Remove server alias and redirects
 	&virtual_server::require_apache();
 	&$virtual_server::first_print($text{'delete_alias'});

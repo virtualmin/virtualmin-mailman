@@ -42,7 +42,7 @@ while(<CGI>) {
 			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/unauthenticated\/$2.cgi/g;
 			}
 		s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
-		s/(http|https):\/\/$d->{'dom'}\//$prot:\/\/$httphost\//g;
+		s/(http|https):\/\/(lists\.)?$d->{'dom'}\//$prot:\/\/$httphost\//g;
 		}
 	if (/^Set-Cookie:/i) {
 		s/\/mailman/\/$module_name\/unauthenticated/g;

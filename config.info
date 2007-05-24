@@ -4,3 +4,5 @@ mailman_cmd=Full path to mailman command,3,Automatic
 mode=List alias creation mode,1,1-Add normal virtusers,0-Use Postfix maillist map
 cgiuser=User to run mailman programs as,3,Apache webserver user
 webminurl=URL to Webmin in Apache configuration,3,Automatic
+no_redirects=Add Apache redirects to Webmin Mailman module?,1,0-Yes,1-No
+manage_url=URL for Manage button,3,Built-in Mailman program wrappers

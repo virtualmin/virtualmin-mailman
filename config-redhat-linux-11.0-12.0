@@ -2,3 +2,4 @@ mailman_dir=/usr/lib/mailman
 mailman_var=/var/lib/mailman
 alt_mailman_cmd=/usr/lib/mailman/mail/mailman
 mode=1
+no_redirects=0
