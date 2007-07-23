@@ -3,3 +3,4 @@ depends=virtual-server/2.50 postfix 1.190
 category=servers
 version=4.2
 readonly=1
+desc_fi=Virtualmin Mailman S&#228;hk&#246;postilistat
