@@ -171,7 +171,7 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'} && $config{'mode'} == 0) {
 	# Domain has been re-named
 	if ($config{'mode'} == 0) {
 		# Update filtering
-		&feature_delete($_[1]);
+		&feature_delete($_[1], 1);
 		&feature_setup($_[0]);
 		}
 
@@ -191,10 +191,11 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'} && $config{'mode'} == 0) {
 	}
 }
 
-# feature_delete(&domain)
+# feature_delete(&domain, [keep-lists])
 # Called when this feature is disabled, or when the domain is being deleted
 sub feature_delete
 {
+local ($d, $keep) = @_;
 if ($config{'mode'} == 0) {
 	# Remove postfix config
 	&foreign_require("postfix", "postfix-lib.pl");
@@ -264,14 +265,17 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	}
 
 # Remove mailing lists
-local @lists = grep { $_->{'dom'} eq $_[0]->{'dom'} } &list_lists();
-if (@lists) {
-	&$virtual_server::first_print(&text('delete_lists', scalar(@lists)));
-	foreach $l (@lists) {
-		&delete_list($l->{'list'}, $l->{'dom'});
+if (!$keep) {
+	local @lists = grep { $_->{'dom'} eq $_[0]->{'dom'} } &list_lists();
+	if (@lists) {
+		&$virtual_server::first_print(&text('delete_lists',
+						    scalar(@lists)));
+		foreach $l (@lists) {
+			&delete_list($l->{'list'}, $l->{'dom'});
+			}
+		&$virtual_server::second_print(
+			$virtual_server::text{'setup_done'});
 		}
-	&$virtual_server::second_print(
-		$virtual_server::text{'setup_done'});
 	}
 }
 

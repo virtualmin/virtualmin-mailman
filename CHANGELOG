@@ -16,3 +16,5 @@ Fixed backups of mailing lists with no public or private archives.
 ---- Changes since 3.9 ----
 Fixed bugs with page link re-writing.
 Added Module Config settings for adding Redirects and destination of Manage button.
+---- Changes since 4.2 ----
+Don't delete mailing lists when renaming domains!
