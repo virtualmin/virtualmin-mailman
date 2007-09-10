@@ -139,6 +139,11 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 			}
 		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
 		$added++;
+
+		# Add alias from /pipermail to archives directory
+		local @al = &apache::find_directive("Alias", $vconf);
+		push(@al, "/pipermail $archives_dir/public");
+		&apache::save_directive("Alias", \@al, $vconf, $conf);
 		}
 	if ($added) {
 		&flush_file_lines();

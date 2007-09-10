@@ -43,8 +43,10 @@ while(<CGI>) {
 		if (!/\.(gif|png|jpg|jpeg)/) {
 			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/$2.cgi/g;
 			}
-		s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
-		s/(http|https):\/\/(lists\.)?$d->{'dom'}\//$prot:\/\/$httphost\//g;
+                if (!/pipermail/) {
+			s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
+			s/(http|https):\/\/(lists\.)?$d->{'dom'}\//$prot:\/\/$httphost\//g;
+			}
 		}
 	s/\/(icons|mailmanicons|images)\/(mailman\/)?(\S+\.(gif|png|jpg|jpeg))/\/$module_name\/icons.cgi\/$3/g;
 	if (/^Set-Cookie:/i) {
