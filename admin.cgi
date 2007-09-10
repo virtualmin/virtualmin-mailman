@@ -40,16 +40,16 @@ $prot = $ENV{'HTTPS'} eq 'ON' ? "https" : "http";
 open(CGI, "$cmd <$temp |");
 while(<CGI>) {
 	if (!/<input.*type=\S*text/i) {
-		if (s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g == 0) {
-			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/$2.cgi/g;
+		if (!/\.(gif|png|jpg|jpeg)/) {
+			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/$2.cgi/g;
 			}
 		s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
 		s/(http|https):\/\/(lists\.)?$d->{'dom'}\//$prot:\/\/$httphost\//g;
 		}
+	s/\/(icons|mailmanicons|images)\/(mailman\/)?(\S+\.(gif|png|jpg|jpeg))/\/$module_name\/icons.cgi\/$3/g;
 	if (/^Set-Cookie:/i) {
 		s/\/mailman/\/$module_name/g;
 		}
-	s/\/(icons|mailmanicons)\/(\S+\.(gif|png|jpg|jpeg))/\/$module_name\/icons.cgi\/$2/g;
 	if (/^(\S+):\s*(.*)\r?\n$/ && !$doneheaders) {
 		$headers .= $_;
 		}
