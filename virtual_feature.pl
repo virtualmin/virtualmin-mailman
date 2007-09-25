@@ -51,7 +51,7 @@ return &mailman_check();
 # or an error message if not
 sub feature_depends
 {
-return $_[0]->{'mail'} ? undef : $text{'feat_edepmail'};
+return $_[0]->{'mail'} || $config{'mode'} == 0 ? undef : $text{'feat_edepmail'};
 }
 
 # feature_clash(&domain)

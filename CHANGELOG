@@ -21,3 +21,5 @@ Don't delete mailing lists when renaming domains!
 ---- Changes since 4.3 ----
 Fixed a bug that prevented icons from appearing at the bottom of the management pages.
 Added an Apache alias from /pipermail to the public archives directory for each domain.
+---- Changes since 4.4 ----
+Mail does not have to be enabled for a domain for mailing lists to be created, if using Postfix transport mode.
