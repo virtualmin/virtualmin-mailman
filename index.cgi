@@ -54,7 +54,8 @@ if (@lists) {
 			     : $l->{'list'},
 		    $l->{'dom'},
 		    $l->{'desc'},
-		    &ui_submit($text{'delete'}, $l->{'list'})." ".
+		    &ui_submit($text{'delete'}, $l->{'list'},
+			       $l->{'list'} eq 'mailman')." ".
 		    &ui_submit($text{'index_mems'}, "mems_".$l->{'list'})." ".
 		    &ui_submit($text{'index_man'}, "man_".$l->{'list'})." ".
 		    (-x $changepw_cmd ? 

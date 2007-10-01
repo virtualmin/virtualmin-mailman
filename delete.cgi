@@ -35,6 +35,7 @@ elsif ($listname =~ /^reset_(\S+)$/) {
 	}
 
 # Get the list
+$listname eq "mailman" && &error($text{'delete_emailman'});
 ($list) = grep { $_->{'list'} eq $listname } @lists;
 &can_edit_list($list) || &error($text{'delete_ecannot'});
 $d = &virtual_server::get_domain_by("dom", $list->{'dom'});

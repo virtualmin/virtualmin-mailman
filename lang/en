@@ -63,6 +63,7 @@ add_epass=Missing password
 delete_err=Failed to delete list
 delete_ecannot=You are not allowed to delete this list
 delete_edom=Failed to find Virtualmin domain
+delete_emailman=The <tt>mailman</tt> list cannot be deleted
 delete_title=Delete Mailing List
 delete_rusure=Are you sure you want to delete the mailing list $1?
 delete_confirm=Yes, Delete It

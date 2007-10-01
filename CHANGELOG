@@ -23,3 +23,5 @@ Fixed a bug that prevented icons from appearing at the bottom of the management 
 Added an Apache alias from /pipermail to the public archives directory for each domain.
 ---- Changes since 4.4 ----
 Mail does not have to be enabled for a domain for mailing lists to be created, if using Postfix transport mode.
+---- Changes since 4.5 ----
+The 'mailman' mailing list can no longer be deleted.
