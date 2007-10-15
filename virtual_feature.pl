@@ -557,6 +557,7 @@ else {
 sub virtusers_ignore
 {
 local ($d) = @_;
+return ( ) if ($config{'mode'} == 0);
 local @rv;
 foreach my $l (&list_lists()) {
 	if ($d && $l->{'dom'} eq $d->{'dom'} ||
