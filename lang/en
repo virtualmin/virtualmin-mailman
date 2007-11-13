@@ -59,6 +59,7 @@ add_eclash=A list with the same name already exists
 add_evdom=No Virtualmin domain found
 add_eemail=Missing or invalid email address
 add_epass=Missing password
+add_ecmd=List creation command failed : $1
 
 delete_err=Failed to delete list
 delete_ecannot=You are not allowed to delete this list

@@ -130,35 +130,30 @@ foreach my $c ("DEFAULT_URL_HOST", "DEFAULT_EMAIL_HOST") {
 		}
 	}
 
-# Call the list creation program
-&foreign_require("proc", "proc-lib.pl");
-local $cmd = $newlist_cmd;
+# Construct and call the list creation command
+local @args = ( $newlist_cmd );
 if ($lang) {
-	$cmd .= " -l $lang";
+	push(@args, "-l", $lang);
 	}
-local ($fh, $fpid) = &proc::pty_process_exec($cmd);
-select($fh); $| = 1; select(STDOUT);
-&wait_for($fh, ":") == 0 || return "<pre>$wait_for_input</pre>";
 if (&get_mailman_version() < 2.1) {
-	&sysprint($fh, "$list\n");
+	push(@args, $list);
 	}
 elsif (!$dom) {
-	&sysprint($fh, "$list\n");
+	push(@args, $list);
 	}
 elsif ($config{'mode'} == 0) {
-	&sysprint($fh, "$list\@lists.$dom\n");
+	push(@args, "$list\@lists.$dom");
 	}
 else {
-	&sysprint($fh, "$list\@$dom\n");
+	push(@args, "$list\@$dom");
 	}
-&wait_for($fh, ":") == 0 || return "List name failed : <pre>$wait_for_input</pre>";
-&sysprint($fh, $email."\n");
-&wait_for($fh, ":") == 0 || return "Email address failed : <pre>$wait_for_input</pre>";
-&sysprint($fh, $pass."\n");
-&wait_for($fh, "enter") == 0 || return "Password failed : <pre>$wait_for_input</pre>";
-&sysprint($fh, "\n");
-&wait_for($fh);
-close($fh);
+push(@args, $email);
+push(@args, $pass);
+local $cmd = join(" ", map { $_ eq '' ? '""' : quotemeta($_) } @args);
+local $out = &backquote_logged("$cmd 2>&1 </dev/null");
+if ($?) {
+	return &text('add_ecmd', "<pre>".&html_escape($out)."</pre>");
+	}
 
 if ($dom) {
 	# Save domain and description
