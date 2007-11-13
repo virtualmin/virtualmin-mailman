@@ -5,7 +5,8 @@ require './virtualmin-mailman-lib.pl';
 &ReadParse();
 
 $ver = &get_mailman_version();
-&ui_print_header(undef, $text{'index_title'}, "", undef, 1, 1, 0,
+$desc = $in{'show'} ? &virtual_server::text('indom', $in{'show'}) : undef;
+&ui_print_header($desc, $text{'index_title'}, "", undef, 1, 1, 0,
 		 undef, undef, undef,
 		 $ver ? &text('index_version', $ver) : undef);
 $err = &mailman_check();
@@ -84,7 +85,7 @@ else {
 			    &ui_textbox("list", undef, 20), 1);
 	if ($access{'dom'} eq '*') {
 		print &ui_table_row($text{'index_dom'},
-			&ui_select("dom", undef,
+			&ui_select("dom", $in{'show'},
 				[ map { [ $_->{'dom'} ] }
 				   sort { $a->{'dom'} cmp $b->{'dom'} }
 				    grep { $_->{$module_name} } 
