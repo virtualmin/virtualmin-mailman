@@ -274,7 +274,9 @@ return $? ? $out : undef;
 sub list_mailman_languages
 {
 opendir(DIR, "$mailman_dir/templates");
-local @rv = grep { $_ !~ /^\./ && $_ !~ /\.(txt|html)$/i } readdir(DIR);
+local @rv = grep { $_ !~ /^\./ &&
+		   $_ !~ /\.(txt|html)$/i &&
+		   -d "$mailman_dir/templates/$_" } readdir(DIR);
 closedir(DIR);
 return sort { $a cmp $b } @rv;
 }
