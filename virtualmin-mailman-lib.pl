@@ -171,6 +171,11 @@ if ($config{'mode'} == 1) {
 				'to' => [ "|$mailman_cmd $a $list" ] };
 		&virtual_server::create_virtuser($virt);
 		}
+	# Sync alias copy virtusers, if supported
+	local $d = &virtual_server::get_domain_by("dom", $dom);
+	if ($d && defined(&virtual_server::sync_alias_virtuals)) {
+		&virtual_server::sync_alias_virtuals($d);
+		}
 	}
 return undef;
 }
@@ -203,6 +208,10 @@ if ($config{'mode'} == 1) {
 		if ($virt) {
 			&virtual_server::delete_virtuser($virt);
 			}
+		}
+	# Sync alias copy virtusers, if supported
+	if (defined(&virtual_server::sync_alias_virtuals)) {
+		&virtual_server::sync_alias_virtuals($d);
 		}
 	}
 }
