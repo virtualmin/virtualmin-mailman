@@ -21,6 +21,7 @@ feat_rarchive=Restoring Mailman archives directories ..
 feat_nolists=.. no lists found
 feat_nolists2=.. no lists found in backup
 feat_emailmanuser=The Unix user $1 has the shell $2, which would prevent Mailman commands from being run as that user
+feat_adminlist=Mailman administration list
 
 setup_map=Adding to Mailman domains list ..
 setup_alias=Adding Mailman alias and redirects to website configuration ..
@@ -51,6 +52,7 @@ index_man=Manage
 index_reset=Reset Password
 index_max=You are not allowed to add any more mailing lists.
 index_canadd0=Based on your limits, $1 additional mailing lists can be added.
+index_nodom=No domain
 
 add_err=Failed to create mailing list
 add_ename=Missing or invalid name

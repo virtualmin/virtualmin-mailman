@@ -63,6 +63,9 @@ local $f;
 while($f = readdir(DIR)) {
 	next if ($f eq "." || $f eq "..");
 	local ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
+	if (!$desc && $f eq 'mailman') {
+		$desc = $text{'feat_adminlist'};
+		}
 	push(@rv, { 'list' => $f,
 		    'dom' => $dom,
 		    'desc' => $desc });

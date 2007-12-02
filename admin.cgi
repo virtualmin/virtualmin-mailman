@@ -41,7 +41,7 @@ open(CGI, "$cmd <$temp |");
 while(<CGI>) {
 	if (!/<input.*type=\S*text/i) {
 		if (!/\.(gif|png|jpg|jpeg)/) {
-			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)/\/$module_name\/$2.cgi/g;
+			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\//\/$module_name\/$2.cgi\//g;
 			}
                 if (!/pipermail/) {
 			s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;

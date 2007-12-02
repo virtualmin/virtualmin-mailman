@@ -53,7 +53,7 @@ if (@lists) {
 		print &ui_columns_row([
 		    $infourl ? "<a href='$infourl'>$l->{'list'}</a>"
 			     : $l->{'list'},
-		    $l->{'dom'},
+		    $l->{'dom'} || "<i>$text{'index_nodom'}</i>",
 		    $l->{'desc'},
 		    &ui_submit($text{'delete'}, $l->{'list'},
 			       $l->{'list'} eq 'mailman')." ".
