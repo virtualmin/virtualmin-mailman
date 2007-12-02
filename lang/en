@@ -10,6 +10,8 @@ feat_etransport=The Postfix transport mapping file defined with <tt>transport_ma
 feat_emaillist=The Postfix mailing list mapping file defined with <tt>relay_domains</tt> is not set in the mail server configuration file
 feat_emailmancmd=The mailman program $1 was not found on your system.
 feat_edepmail=Mailman cannot be enabled unless mail is.
+feat_emmlist=Mailman cannot be enabled unlesss the administration list <tt>mailman</tt> has been created.
+feat_emmlink=This can be done in the <a href='$1'>Mailman plugin module</a>.
 feat_backup=Creating backup of Mailman mailing lists ..
 feat_failed=.. TAR failed : $1
 feat_restore=Restoring Mailman mailing lists ..
@@ -37,6 +39,7 @@ index_title=Mailman Mailing Lists
 index_version=Mailman $1
 index_list=List name
 index_dom=Domain name
+index_dom2=Associate with domain
 index_desc=Description
 index_none=No mailing lists have been created yet.
 index_none2=No mailing lists that you have access to have been created yet.
@@ -53,6 +56,9 @@ index_reset=Reset Password
 index_max=You are not allowed to add any more mailing lists.
 index_canadd0=Based on your limits, $1 additional mailing lists can be added.
 index_nodom=No domain
+index_mmlist=Warning - Mailman will not operate properly unless a list named <tt>mailman</tt> has been created. Use the form below to create it now.
+index_mmheader=Mailman administration list options
+index_nodom=No domain
 
 add_err=Failed to create mailing list
 add_ename=Missing or invalid name
@@ -62,6 +68,7 @@ add_evdom=No Virtualmin domain found
 add_eemail=Missing or invalid email address
 add_epass=Missing password
 add_ecmd=List creation command failed : $1
+add_einit=Failed to start Mailman queue runner : $1
 
 delete_err=Failed to delete list
 delete_ecannot=You are not allowed to delete this list

@@ -25,3 +25,5 @@ Added an Apache alias from /pipermail to the public archives directory for each 
 Mail does not have to be enabled for a domain for mailing lists to be created, if using Postfix transport mode.
 ---- Changes since 4.5 ----
 The 'mailman' mailing list can no longer be deleted.
+---- Changes since 4.6 ----
+Improve detection of missing 'mailman' administration list, plus special form to create it.

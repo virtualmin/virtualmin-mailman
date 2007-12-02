@@ -80,7 +80,8 @@ if ($access{'max'} && @lists >= $access{'max'}) {
 	}
 else {
 	print &ui_form_start("add.cgi");
-	print &ui_table_start($text{'index_header'}, undef, 2);
+	print &ui_table_start($text{'index_header'}, undef, 2,
+			      [ "width=30%" ]);
 	print &ui_table_row("<b>$text{'index_list'}</b>",
 			    &ui_textbox("list", undef, 20), 1);
 	if ($access{'dom'} eq '*') {
@@ -110,6 +111,34 @@ else {
 
 	print &ui_table_row($text{'index_pass'},
 		    &ui_opt_textbox("pass", undef, 30, $text{'index_fv'}), 1);
+
+	print &ui_table_end();
+	print &ui_submit($text{'create'});
+	print &ui_form_end();
+	}
+
+# Show warning and form if 'mailman' list is missing
+if (&virtual_server::master_admin() && &needs_mailman_list()) {
+	print "<b>",&text('index_mmlist'),"</b><p>\n";
+	print &ui_form_start("add.cgi");
+	print &ui_hidden("list", "mailman");
+	print &ui_table_start($text{'index_mmheader'}, undef, 2,
+			      [ "width=30%" ]);
+
+	print &ui_table_row($text{'index_email'},
+		    &ui_textbox("email", undef, 30));
+
+	print &ui_table_row($text{'index_pass'},
+		    &ui_textbox("pass", undef, 30));
+
+	@doms = grep { $_->{'mail'} } &virtual_server::list_domains();
+	if (@doms) {
+		print &ui_table_row($text{'index_dom2'},
+		    &ui_select("dom", undef,
+			[ [ "", "&lt;$text{'index_nodom'}&gt;" ],
+			  map { [ $_->{'dom'} ] }
+			   sort { $a->{'dom'} cmp $b->{'dom'} } @doms ]));
+		}
 
 	print &ui_table_end();
 	print &ui_submit($text{'create'});

@@ -442,5 +442,28 @@ else {
 	}
 }
 
+# needs_mailman_list()
+# Returns 1 if a list named 'mailman' is needed and missing
+sub needs_mailman_list
+{
+local $ver = &get_mailman_version();
+if ($ver < 2.1) {
+	# Older versions don't
+	return 0;
+	}
+local @lists = &list_lists();
+local ($mailman) = grep { $_->{'list'} eq 'mailman' } @lists;
+if ($mailman) {
+	# Already exists
+	return 0;
+	}
+&foreign_require("init", "init-lib.pl");
+if (&init::action_status("mailman") == 0) {
+	# No queue runner
+	return 0;
+	}
+return 1;
+}
+
 1;
 

@@ -51,6 +51,10 @@ return &mailman_check();
 # or an error message if not
 sub feature_depends
 {
+if (&needs_mailman_list()) {
+	return $text{'feat_emmlist'}.
+	       (&virtual_server::master_admin() ? &text('feat_emmlink', "../$module_name/index.cgi") : "");
+	}
 return $_[0]->{'mail'} || $config{'mode'} == 0 ? undef : $text{'feat_edepmail'};
 }
 
