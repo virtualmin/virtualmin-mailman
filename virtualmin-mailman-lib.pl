@@ -162,7 +162,7 @@ if ($dom) {
 	&write_file($lists_file, \%lists);
 	}
 
-if ($config{'mode'} == 1) {
+if ($config{'mode'} == 1 && $dom) {
 	# Add aliases
 	local $a;
 	foreach $a (@mailman_aliases) {
