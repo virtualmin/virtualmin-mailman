@@ -58,7 +58,6 @@ index_canadd0=Based on your limits, $1 additional mailing lists can be added.
 index_nodom=No domain
 index_mmlist=Warning - Mailman will not operate properly unless a list named <tt>mailman</tt> has been created. Use the form below to create it now.
 index_mmheader=Mailman administration list options
-index_nodom=No domain
 
 add_err=Failed to create mailing list
 add_ename=Missing or invalid name
