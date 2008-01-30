@@ -160,13 +160,17 @@ if ($?) {
 
 if ($dom) {
 	# Save domain and description
+	&lock_file($lists_file);
 	&read_file($lists_file, \%lists);
 	$lists{$list} = $dom."\t".$desc;
 	&write_file($lists_file, \%lists);
+	&unlock_file($lists_file);
 	}
 
 if ($config{'mode'} == 1 && $dom) {
 	# Add aliases
+	&virtual_server::obtain_lock_mail()
+		if (defined(&virtual_server::obtain_lock_mail));
 	local $a;
 	foreach $a (@mailman_aliases) {
 		local $virt = { 'from' => ($a eq "post" ? $list :
@@ -179,6 +183,8 @@ if ($config{'mode'} == 1 && $dom) {
 	if ($d && defined(&virtual_server::sync_alias_virtuals)) {
 		&virtual_server::sync_alias_virtuals($d);
 		}
+	&virtual_server::release_lock_mail()
+		if (defined(&virtual_server::release_lock_mail));
 	}
 return undef;
 }
@@ -195,13 +201,17 @@ if ($?) {
 	}
 
 # Delete from domain map
+&lock_file($lists_file);
 &read_file($lists_file, \%lists);
 delete($lists{$list});
 &write_file($lists_file, \%lists);
+&unlock_file($lists_file);
 
 if ($config{'mode'} == 1) {
 	# Remove aliases
 	local $d = &virtual_server::get_domain_by("dom", $dom);
+	&virtual_server::obtain_lock_mail($d)
+		if (defined(&virtual_server::obtain_lock_mail));
 	local @virts = &virtual_server::list_domain_aliases($d);
 	local $a;
 	foreach $a (@mailman_aliases) {
@@ -216,6 +226,8 @@ if ($config{'mode'} == 1) {
 	if (defined(&virtual_server::sync_alias_virtuals)) {
 		&virtual_server::sync_alias_virtuals($d);
 		}
+	&virtual_server::release_lock_mail()
+		if (defined(&virtual_server::release_lock_mail));
 	}
 }
 

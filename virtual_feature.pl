@@ -80,8 +80,10 @@ sub feature_setup
 {
 if ($config{'mode'} == 0) {
 	# Add postfix config
-	&foreign_require("postfix", "postfix-lib.pl");
 	&$virtual_server::first_print($text{'setup_map'});
+	&virtual_server::obtain_lock_mail($_[0])
+		if (defined(&virtual_server::obtain_lock_mail));
+	&foreign_require("postfix", "postfix-lib.pl");
 	&virtual_server::create_replace_mapping($maillist_map,
 				 { 'name' => "lists.".$_[0]->{'dom'},
 				   'value' => "lists.".$_[0]->{'dom'} },
@@ -92,14 +94,18 @@ if ($config{'mode'} == 0) {
 				 { 'name' => "lists.".$_[0]->{'dom'},
 				   'value' => "mailman:" });
 	&postfix::regenerate_any_table($transport_map);
+	&virtual_server::release_lock_mail($_[0])
+		if (defined(&virtual_server::release_lock_mail));
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
 
 if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	# Add server alias, and redirect for /cgi-bin/mailman and /mailman
 	# to anonymous wrappers
-	&virtual_server::require_apache();
 	&$virtual_server::first_print($text{'setup_alias'});
+	&virtual_server::require_apache();
+	&virtual_server::obtain_lock_web($_[0])
+		if (defined(&virtual_server::obtain_lock_web));
 	local $conf = &apache::get_config();
 	local @ports = ( $_[0]->{'web_port'},
 			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
@@ -161,6 +167,8 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 		&$virtual_server::second_print(
 			$virtual_server::text{'delete_noapache'});
 		}
+	&virtual_server::obtain_lock_web($_[0])
+		if (defined(&virtual_server::obtain_lock_web));
 	}
 
 # Set default limit from template
@@ -207,11 +215,14 @@ sub feature_delete
 local ($d, $keep) = @_;
 if ($config{'mode'} == 0) {
 	# Remove postfix config
-	&foreign_require("postfix", "postfix-lib.pl");
 	&$virtual_server::first_print($text{'delete_map'});
+	&foreign_require("postfix", "postfix-lib.pl");
+	&virtual_server::obtain_lock_mail($_[0])
+		if (defined(&virtual_server::obtain_lock_mail));
 	local $ok = 0;
 	local $mmap = &postfix::get_maps($maillist_map, [ $maillist_file ]);
-	local ($maillist) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} } @$mmap;
+	local ($maillist) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
+				 @$mmap;
 	if ($maillist) {
 		&postfix::delete_mapping($maillist_map, $maillist);
 		&postfix::regenerate_any_table($maillist_map,
@@ -219,14 +230,18 @@ if ($config{'mode'} == 0) {
 		$ok++;
 		}
 	local $tmap = &postfix::get_maps($transport_map);
-	local ($trans) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} } @$tmap;
+	local ($trans) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
+			      @$tmap;
 	if ($trans) {
 		&postfix::delete_mapping($transport_map, $trans);
 		&postfix::regenerate_any_table($transport_map);
 		$ok++;
 		}
+	&virtual_server::release_lock_mail($_[0])
+		if (defined(&virtual_server::release_lock_mail));
 	if ($ok == 2) {
-		&$virtual_server::second_print($virtual_server::text{'setup_done'});
+		&$virtual_server::second_print(
+			$virtual_server::text{'setup_done'});
 		}
 	else {
 		&$virtual_server::second_print($text{'delete_missing'});
@@ -235,8 +250,10 @@ if ($config{'mode'} == 0) {
 
 if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	# Remove server alias and redirects
-	&virtual_server::require_apache();
 	&$virtual_server::first_print($text{'delete_alias'});
+	&virtual_server::require_apache();
+	&virtual_server::obtain_lock_web($_[0])
+		if (defined(&virtual_server::obtain_lock_web));
 	local $conf = &apache::get_config();
 	local @ports = ( $_[0]->{'web_port'},
 			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
@@ -271,6 +288,8 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 		&$virtual_server::second_print(
 			$virtual_server::text{'delete_noapache'});
 		}
+	&virtual_server::release_lock_web($_[0])
+		if (defined(&virtual_server::release_lock_web));
 	}
 
 # Remove mailing lists
@@ -482,6 +501,8 @@ else {
 
 	# Re-create aliases
 	if ($config{'mode'} == 1) {
+		&virtual_server::obtain_lock_mail($_[0])
+			if (defined(&virtual_server::obtain_lock_mail));
 		foreach my $l (keys %dlists) {
 			local $a;
 			foreach $a (@mailman_aliases) {
@@ -491,6 +512,8 @@ else {
 				&virtual_server::create_virtuser($virt);
 				}
 			}
+		&virtual_server::release_lock_mail($_[0])
+			if (defined(&virtual_server::release_lock_mail));
 		}
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 
