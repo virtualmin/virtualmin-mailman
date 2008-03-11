@@ -59,5 +59,5 @@ else {
 	&error($err) if ($err);
 	}
 
-&redirect("");
+&redirect("index.cgi?show=$in{'show'}");
 

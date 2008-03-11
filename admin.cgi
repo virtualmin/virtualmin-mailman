@@ -37,9 +37,15 @@ close(TEMP);
 # Run the real command, and fix up output
 $cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
 $prot = $ENV{'HTTPS'} eq 'ON' ? "https" : "http";
+$textarea = 0;
 open(CGI, "$cmd <$temp |");
 while(<CGI>) {
-	if (!/<input.*type=\S*text/i) {
+	# Check if we are in a textarea
+	if (/<textarea/i) { $textarea = 1; }
+	if (/<\/textarea/i) { $textarea = 0; }
+
+	# Replace URLs, if not in input fields
+	if (!/<input.*type=\S*text/i && !$textarea) {
 		if (!/\.(gif|png|jpg|jpeg)/) {
 			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\//\/$module_name\/$2.cgi\//g;
 			}
