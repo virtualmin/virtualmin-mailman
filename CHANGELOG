@@ -27,3 +27,7 @@ Mail does not have to be enabled for a domain for mailing lists to be created, i
 The 'mailman' mailing list can no longer be deleted.
 ---- Changes since 4.6 ----
 Improve detection of missing 'mailman' administration list, plus special form to create it.
+---- Changes since 4.7 ----
+Participate in Virtualmin's new locking system.
+Avoid munging URLs in administration interface inside text boxes.
+Fixed a bug that could break the virtualmin-base package install.
