@@ -2,6 +2,7 @@
 # Run a mailman CGI program, and display output ONLY
 
 chdir("..");		# Cause we are in a sub-directory
+delete($ENV{'HTTP_REFERER'});	# So that links from webmail work
 $trust_unknown_referers = 1;
 require './virtualmin-mailman-lib.pl';
 $ENV{'PATH_INFO'} =~ /^\/([^\/]+)(.*)/ ||
