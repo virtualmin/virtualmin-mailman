@@ -55,7 +55,7 @@ while(<CGI>) {
 			}
 		}
 	if (/^Set-Cookie:/i) {
-		s/(cgi-bin\/)?\/mailman/\/$module_name\/unauthenticated/g;
+		s/(\/cgi-bin)?\/mailman/\/$module_name\/unauthenticated/g;
 		}
 	s/\/(icons|mailmanicons|images)\/(mailman\/)?(\S+\.(gif|png|jpg|jpeg))/\/$module_name\/unauthenticated\/icons.cgi\/$3/g;
 	if (/^(\S+):\s*(.*)\r?\n$/ && !$doneheaders) {
