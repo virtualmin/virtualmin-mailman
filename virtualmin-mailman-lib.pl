@@ -477,5 +477,16 @@ if (&init::action_status("mailman") == 0) {
 return 1;
 }
 
+sub http_date
+{
+local @weekday = ( "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" );
+local @month = ( "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" );
+local @tm = gmtime($_[0]);
+return sprintf "%s, %d %s %d %2.2d:%2.2d:%2.2d GMT",
+		$weekday[$tm[6]], $tm[3], $month[$tm[4]], $tm[5]+1900,
+		$tm[2], $tm[1], $tm[0];
+}
+
 1;
 

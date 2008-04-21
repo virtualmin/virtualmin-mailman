@@ -100,6 +100,7 @@ deletemem_emem=Member not found!
 
 edit_eurl=Invalid URL
 edit_ecannot=You are not allowed to manage this list
+edit_edname=Failed to find Virtualmin domain for $1
 
 reset_title=Reset List Password
 reset_doing=Now resetting the mailing list to a random password ..

@@ -2,17 +2,38 @@
 # Run a mailman CGI program, and display output with Webmin header
 
 require './virtualmin-mailman-lib.pl';
-$ENV{'PATH_INFO'} =~ /^\/([^\/]+)(.*)/ ||
+if ($ENV{'PATH_INFO'} =~ /^\/([^\/]+)(.*)/) {
+	$lname = $1;
+	}
+elsif ($ENV{'PATH_INFO'} eq '' || $ENV{'PATH_INFO'} eq '/') {
+	# No list name
+	$lname = '';
+	}
+else {
 	&error($text{'edit_eurl'});
-$list = $1;
+	}
 $prog = $ENV{'SCRIPT_NAME'};
 $prog =~ s/^.*\///;
 $prog =~ s/\.cgi$//;
 
 @lists = &list_lists();
-($list) = grep { $_->{'list'} eq $list } @lists;
-&can_edit_list($list) || &error($text{'edit_ecannot'});
-$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
+if ($lname) {
+	# Get the list, and from it the domain
+	($list) = grep { $_->{'list'} eq $lname } @lists;
+	&can_edit_list($list) || &error($text{'edit_ecannot'});
+	$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
+	}
+else {
+	# Get the domain from the URL
+	$dname = $ENV{'HTTP_HOST'};
+	$dname =~ s/:\d+$//;
+	$d = &virtual_server::get_domain_by("dom", $dname);
+	if (!$d) {
+		$dname =~ s/^(www|ftp|mail|lists)\.//i;
+		$d = &virtual_server::get_domain_by("dom", $dname);
+		}
+	$dname || &error(&text('edit_edname', &html_escape($dname)));
+	}
 
 $cgiuser = &get_mailman_apache_user($d);
 $realhost = &get_system_hostname();
@@ -47,7 +68,7 @@ while(<CGI>) {
 	# Replace URLs, if not in input fields
 	if (!/<input.*type=\S*text/i && !$textarea) {
 		if (!/\.(gif|png|jpg|jpeg)/) {
-			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\//\/$module_name\/$2.cgi\//g;
+			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)([\/ "'])/\/$module_name\/$2.cgi$3/g;
 			}
                 if (!/pipermail/) {
 			s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
