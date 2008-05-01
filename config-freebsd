@@ -1,0 +1,4 @@
+mailman_dir=/usr/local/mailman
+mailman_cmd=/usr/local/mailman/mail/mailman
+mode=1
+no_redirects=0
