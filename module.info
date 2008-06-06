@@ -1,5 +1,5 @@
 desc=Virtualmin Mailman Mailing Lists
-depends=virtual-server/2.50 postfix 1.190
+depends=virtual-server/2.50 postfix 1.420
 category=servers
 version=5.0
 readonly=1
