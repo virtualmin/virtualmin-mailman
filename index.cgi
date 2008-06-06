@@ -14,65 +14,68 @@ if ($err) {
 	&ui_print_endpage($err);
 	}
 
+# Build contents for lists table
 @alllists = &list_lists();
 @lists = grep { &can_edit_list($_) } @alllists;
 if ($in{'show'}) {
 	# Only show specified lists
 	@lists = grep { $_->{'dom'} eq $in{'show'} } @lists;
 	}
-if (@lists) {
-	if ($access{'max'} && $access{'max'} > @lists) {
-		print "<b>",&text('index_canadd0', $access{'max'}-@lists),
-		      "</b><p>\n";
-		}
-	print &ui_form_start("delete.cgi");
-	print &ui_columns_start([ $text{'index_list'},
-				  $text{'index_dom'},
-				  $text{'index_desc'},
-				  $text{'index_action'} ]);
-	foreach $l (@lists) {
-		# Check if we can link to the list info page
-		local $infourl;
-		if ($l->{'dom'}) {
-			$d = &virtual_server::get_domain_by("dom", $l->{'dom'});
-			if ($d && $d->{'web'}) {
-				local ($virt, $vconf) =
-					&virtual_server::get_apache_virtual(
-					$d->{'dom'}, $d->{'web_port'});
-				local @rm = grep { /^\/mailman\// }
-					&apache::find_directive("RedirectMatch",
-								$vconf);
-				if (@rm) {
-					$infourl = "http://$d->{'dom'}/".
-					   "mailman/listinfo/$l->{'list'}";
-					}
+@table = ( );
+foreach $l (@lists) {
+	# Check if we can link to the list info page
+	local $infourl;
+	if ($l->{'dom'}) {
+		$d = &virtual_server::get_domain_by("dom", $l->{'dom'});
+		if ($d && $d->{'web'}) {
+			local ($virt, $vconf) =
+				&virtual_server::get_apache_virtual(
+				$d->{'dom'}, $d->{'web_port'});
+			local @rm = grep { /^\/mailman\// }
+				&apache::find_directive("RedirectMatch",
+							$vconf);
+			if (@rm) {
+				$infourl = "http://$d->{'dom'}/".
+				   "mailman/listinfo/$l->{'list'}";
 				}
 			}
-
-		# Add the row
-		print &ui_columns_row([
-		    $infourl ? "<a href='$infourl'>$l->{'list'}</a>"
-			     : $l->{'list'},
-		    $l->{'dom'} || "<i>$text{'index_nodom'}</i>",
-		    $l->{'desc'},
-		    &ui_submit($text{'delete'}, $l->{'list'},
-			       $l->{'list'} eq 'mailman')." ".
-		    &ui_submit($text{'index_mems'}, "mems_".$l->{'list'})." ".
-		    &ui_submit($text{'index_man'}, "man_".$l->{'list'})." ".
-		    (-x $changepw_cmd ? 
-		      &ui_submit($text{'index_reset'}, "reset_".$l->{'list'}) :
-		      "")
-		    ]);
 		}
-	print &ui_columns_end();
-	print &ui_form_end();
+
+	# Add the row
+	push(@table, [
+	    $infourl ? "<a href='$infourl'>$l->{'list'}</a>"
+		     : $l->{'list'},
+	    $l->{'dom'} || "<i>$text{'index_nodom'}</i>",
+	    $l->{'desc'},
+	    &ui_submit($text{'delete'}, $l->{'list'},
+		       $l->{'list'} eq 'mailman')." ".
+	    &ui_submit($text{'index_mems'}, "mems_".$l->{'list'})." ".
+	    &ui_submit($text{'index_man'}, "man_".$l->{'list'})." ".
+	    (-x $changepw_cmd ? 
+	      &ui_submit($text{'index_reset'}, "reset_".$l->{'list'}) :
+	      "")
+	    ]);
 	}
-elsif (@alllists) {
-	print "<b>$text{'index_none'}</b><p>\n";
+
+# Render table of lists
+if ($access{'max'} && $access{'max'} > @lists) {
+	print "<b>",&text('index_canadd0', $access{'max'}-@lists),
+	      "</b><p>\n";
 	}
-else {
-	print "<b>$text{'index_none2'}</b><p>\n";
-	}
+print &ui_form_columns_table(
+	"delete.cgi",
+	undef,
+	0,
+	undef,
+	undef,
+	[ $text{'index_list'}, $text{'index_dom'},
+	  $text{'index_desc'}, $text{'index_action'} ],
+	100,
+	\@table,
+	undef,
+	0,
+	undef,
+	@alllists ? $text{'index_none'} : $text{'index_none2'});
 
 # Show form to add a list (if allowed)
 if ($access{'max'} && @lists >= $access{'max'}) {

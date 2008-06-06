@@ -9,28 +9,31 @@ require './virtualmin-mailman-lib.pl';
 
 &ui_print_header(&text('mems_sub', $in{'list'}), $text{'mems_title'}, "");
 
+# Build data for members table
 @mems = &list_members($list);
-if (@mems) {
-	print &ui_form_start("delete_member.cgi");
-	print &ui_hidden("list", $in{'list'}),"\n";
-	print &ui_columns_start([ $text{'mems_email'},
-				  $text{'mems_type'},
-				  $text{'index_action'} ]);
-	foreach $m (@mems) {
-		print &ui_columns_row([
-			$m->{'email'},
-			$m->{'digest'} eq 'y' ? $text{'mems_digesty'}
-					      : $text{'mems_digestn'},
-			&ui_submit($text{'delete'}, $m->{'email'})
-			]);
-		}
-	print &ui_columns_end();
-	print &ui_form_end();
-	}
-else {
-	print "<b>$text{'mems_none'}</b><p>\n";
+foreach $m (@mems) {
+	push(@table, [
+		$m->{'email'},
+		$m->{'digest'} eq 'y' ? $text{'mems_digesty'}
+				      : $text{'mems_digestn'},
+		&ui_submit($text{'delete'}, $m->{'email'})
+		]);
 	}
 
+# Show members table
+print &ui_form_columns_table(
+	"delete_member.cgi",
+	undef,
+	0,
+	undef,
+	[ [ "list", $in{'list'} ] ],
+	[ $text{'mems_email'}, $text{'mems_type'}, $text{'index_action'} ],
+	undef,
+	\@table,
+	undef, 0, undef,
+	$text{'mems_none'});
+	
+# Show form to add a new member
 print &ui_form_start("add_member.cgi", "post");
 print &ui_hidden("list", $in{'list'}),"\n";
 print &ui_table_start($text{'mems_header'}, undef, 2);
