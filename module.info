@@ -5,3 +5,4 @@ version=5.0
 readonly=1
 desc_fi=Virtualmin Mailman S&#228;hk&#246;postilistat
 desc_nl=Virtualmin Mailman Mail Lijst
+feedback=jcameron@webmin.com
