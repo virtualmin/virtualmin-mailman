@@ -290,12 +290,18 @@ local $out = &backquote_logged("$cmd <$temp 2>&1");
 return $? ? $out : undef;
 }
 
+# list_mailman_languages()
+# Returns a list of all language codes know to Mailman
 sub list_mailman_languages
 {
-opendir(DIR, "$mailman_dir/templates");
+local $tdir = $config{'mailman_templates'};
+if (!$tdir || !-d $tdir) {
+	$tdir = "$mailman_dir/templates";
+	}
+opendir(DIR, $tdir);
 local @rv = grep { $_ !~ /^\./ &&
 		   $_ !~ /\.(txt|html)$/i &&
-		   -d "$mailman_dir/templates/$_" } readdir(DIR);
+		   -d "$tdir/$_" } readdir(DIR);
 closedir(DIR);
 return sort { $a cmp $b } @rv;
 }
