@@ -1,0 +1,9 @@
+mailman_dir=Mailman Basisverzeichnis,3,Standard
+mailman_var=Mailman Datenverzeichnis,3,Gleich wie Basisverzeichnis
+mailman_cmd=Voller Pfad zum Mailmanprogramm,3,Automatisch
+mailman_templates=Mailman Nachrichtenvorlagenverzeichnis,3,Unterhalb des Basisverzeichnisses
+mode=Erzeuge Listenaliases durch,1,1-Normale virtuelle Benutzer,0-&#220;ber das Postfix Mailinglisten Mapping
+cgiuser=Starte Mailmanprogramme als,3,Apache Webserverbenutzer
+webminurl=URL zu Webmin innerhalb der Apachekonfiguration,3,Automatisch
+no_redirects=F&#252;ge Apacheumleitungen zum Webmin Mailmanmodul hinzu?,1,0-Ja,1-Nein
+manage_url=Link hinter dem Manage Button,3,Eingebaute Mailman Programm Wrappers
