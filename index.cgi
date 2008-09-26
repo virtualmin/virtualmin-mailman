@@ -84,8 +84,7 @@ if ($access{'max'} && @lists >= $access{'max'}) {
 else {
 	print &ui_form_start("add.cgi");
 	print &ui_hidden("show", $in{'show'});
-	print &ui_table_start($text{'index_header'}, undef, 2,
-			      [ "width=30%" ]);
+	print &ui_table_start($text{'index_header'}, undef, 2);
 	print &ui_table_row("<b>$text{'index_list'}</b>",
 			    &ui_textbox("list", undef, 20), 1);
 	if ($access{'dom'} eq '*') {
