@@ -7,7 +7,7 @@ require './virtualmin-mailman-lib.pl';
 # Validate inputs
 &error_setup($text{'add_err'});
 $in{'list'} = lc($in{'list'});
-$in{'list'} =~ /^[a-z0-9\.\-]+$/i || &error($text{'add_elist'});
+$in{'list'} =~ /^[a-z0-9\.\-\_]+$/i || &error($text{'add_ename'});
 if ($in{'list'} ne 'mailman') {
 	$in{'dom'} =~ /^[a-z0-9\.\-]+$/i || &error($text{'add_edom'});
 	}

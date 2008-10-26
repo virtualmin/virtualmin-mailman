@@ -60,7 +60,7 @@ index_mmlist=Warning - Mailman will not operate properly unless a list named <tt
 index_mmheader=Mailman administration list options
 
 add_err=Failed to create mailing list
-add_ename=Missing or invalid name
+add_ename=Missing or invalid list name - only letters, numbers, dot, dash and underscore are allowed
 add_edom=Missing or invalid domain name
 add_eclash=A list with the same name already exists
 add_evdom=No Virtualmin domain found

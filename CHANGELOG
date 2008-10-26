@@ -31,3 +31,5 @@ Improve detection of missing 'mailman' administration list, plus special form to
 Participate in Virtualmin's new locking system.
 Avoid munging URLs in administration interface inside text boxes.
 Fixed a bug that could break the virtualmin-base package install.
+---- Changes since 5.1 ----
+Allow use of _ in mailing list names.
