@@ -9,10 +9,10 @@ require './virtualmin-mailman-lib.pl';
 &can_edit_list($list) || &error($text{'mems_ecannot'});
 
 @mems = &list_members($list);
-($email) = grep { $_ ne "list" } (keys %in);
+($email) = grep { $_ ne "list" && $_ ne "show" } (keys %in);
 ($mem) = grep { $_->{'email'} eq $email } @mems;
 $mem || &error($text{'deletemem_emem'});
 
 $err = &remove_member($mem, $list);
 &error($err) if ($err);
-&redirect("list_mems.cgi?list=$in{'list'}");
+&redirect("list_mems.cgi?list=$in{'list'}&show=$in{'show'}");

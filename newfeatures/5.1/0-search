@@ -1,0 +1,6 @@
+desc=Mailing list member search
+html=Members of mailing lists can be searched for across all lists in a domain, or all available domains.
+master=1
+reseller=1
+owner=1
+link=/virtualmin-mailman/

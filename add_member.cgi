@@ -16,5 +16,5 @@ $mem = { 'email' => $in{'email'},
 	 'admin' => $in{'admin'} };
 $err = &add_member($mem, $list);
 &error($err) if ($err);
-&redirect("list_mems.cgi?list=$in{'list'}");
+&redirect("list_mems.cgi?list=$in{'list'}&show=$in{'show'}");
 

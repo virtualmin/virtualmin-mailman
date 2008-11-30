@@ -6,11 +6,11 @@ require './virtualmin-mailman-lib.pl';
 &error_setup($text{'delete_err'});
 
 @lists = &list_lists();
-($listname) = grep { $_ ne "confirm" } keys %in;
+($listname) = grep { $_ ne "confirm" && $_ ne "show" } keys %in;
 
 if ($listname =~ /^mems_(\S+)$/) {
 	# Actually editing members .. redirect
-	&redirect("list_mems.cgi?list=$1");
+	&redirect("list_mems.cgi?list=$1&show=$in{'show'}");
 	exit;
 	}
 elsif ($listname =~ /^man_(\S+)$/) {

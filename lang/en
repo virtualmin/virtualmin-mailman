@@ -58,6 +58,12 @@ index_canadd0=Based on your limits, $1 additional mailing lists can be added.
 index_nodom=No domain
 index_mmlist=Warning - Mailman will not operate properly unless a list named <tt>mailman</tt> has been created. Use the form below to create it now.
 index_mmheader=Mailman administration list options
+index_sheader=Search mailing lists
+index_semail=Member email address to find
+index_sdoms=Lists to search
+index_sdoms1=All lists in all domains
+index_sdoms0=Only lists in this domain
+index_search=Search
 
 add_err=Failed to create mailing list
 add_ename=Missing or invalid list name - only letters, numbers, dot, dash and underscore are allowed
@@ -116,3 +122,13 @@ tmpl_limit=Default limit on number of Mailman mailing lists
 tmpl_unlimit=Unlimited
 tmpl_atmost=At most
 tmpl_elimit=Missing or invalid limit on number of Mailman mailing lists
+
+search_title=Search Mailing Lists
+search_err=Search failed
+search_eemail=No email address entered
+search_email=Email address
+search_list=Mailing list
+search_dom=Domain name
+search_actions=Actions
+search_delete=Delete member
+search_man=Manage list

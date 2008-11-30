@@ -26,7 +26,8 @@ print &ui_form_columns_table(
 	undef,
 	0,
 	undef,
-	[ [ "list", $in{'list'} ] ],
+	[ [ "list", $in{'list'} ],
+	  [ "show", $in{'show'} ] ],
 	[ $text{'mems_email'}, $text{'mems_type'}, $text{'index_action'} ],
 	undef,
 	\@table,
@@ -36,6 +37,7 @@ print &ui_form_columns_table(
 # Show form to add a new member
 print &ui_form_start("add_member.cgi", "post");
 print &ui_hidden("list", $in{'list'}),"\n";
+print &ui_hidden("show", $in{'show'}),"\n";
 print &ui_table_start($text{'mems_header'}, undef, 2);
 
 print &ui_table_row($text{'mems_email'},
@@ -61,4 +63,4 @@ print &ui_table_row($text{'mems_admin'},
 print &ui_table_end();
 print &ui_form_end([ [ "add", $text{'mems_add'} ] ]);
 
-&ui_print_footer("", $text{'index_return'});
+&ui_print_footer("index.cgi?show=$in{'show'}", $text{'index_return'});

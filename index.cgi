@@ -67,7 +67,7 @@ print &ui_form_columns_table(
 	undef,
 	0,
 	undef,
-	undef,
+	[ [ 'show', $in{'show'} ] ],
 	[ $text{'index_list'}, $text{'index_dom'},
 	  $text{'index_desc'}, $text{'index_action'} ],
 	100,
@@ -147,6 +147,29 @@ if (&virtual_server::master_admin() && &needs_mailman_list()) {
 	print &ui_submit($text{'create'});
 	print &ui_form_end();
 	}
+
+# Form to search for members
+print &ui_form_start("search.cgi");
+print &ui_hidden("show", $in{'show'});
+print &ui_table_start($text{'index_sheader'}, undef, 2);
+
+# Email address
+print &ui_table_row($text{'index_semail'},
+	&ui_textbox("email", undef, 40));
+
+# This domain or all?
+if ($in{'show'}) {
+	print &ui_table_row($text{'index_sdoms'},
+		&ui_radio("doms", 1, [ [ 1, $text{'index_sdoms1'} ],
+				       [ 0, $text{'index_sdoms0'} ] ]));
+	}
+else {
+	print &ui_hidden("doms", 1);
+	}
+
+print &ui_table_end();
+print &ui_submit($text{'index_search'});
+print &ui_form_end();
 
 &ui_print_footer("/", $text{'index'});
 
