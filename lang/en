@@ -74,6 +74,8 @@ add_eemail=Missing or invalid email address
 add_epass=Missing password
 add_ecmd=List creation command failed : $1
 add_einit=Failed to start Mailman queue runner : $1
+add_ealiases=The following email aliases clash with this mailing list : $1
+add_eusers=The following mailboxes clash with this mailing list : $1
 
 delete_err=Failed to delete list
 delete_ecannot=You are not allowed to delete this list

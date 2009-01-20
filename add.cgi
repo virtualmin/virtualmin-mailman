@@ -49,6 +49,26 @@ else {
 		$parentdom = &virtual_server::get_domain($vdom->{'parent'});
 		}
 
+	# Check for a clash on aliases or users
+	@aliases = &virtual_server::list_virtusers();
+	@clash = grep {
+		$_->{'from'} eq $in{'list'}.'@'.$vdom->{'dom'} ||
+		$_->{'from'} =~ /^\Q$in{'list'}\E\-.*\@\Q$vdom->{'dom'}\E/
+		      } @aliases;
+	if (@clash) {
+		&error(&text('add_ealiases',
+			join(" ", map { $_->{'from'} } @clash)));
+		}
+	@users = &virtual_server::list_domain_users($vdom);
+	@clash = grep {
+		$_->{'email'} eq $in{'list'}.'@'.$vdom->{'dom'} ||
+		$_->{'email'} =~ /^\Q$in{'list'}\E\-.*\@\Q$vdom->{'dom'}\E/
+		      } @users;
+	if (@clash) {
+		&error(&text('add_eusers',
+			join(" ", map { $_->{'user'} } @clash)));
+		}
+
 	# Create the list
 	$err = &create_list($in{'list'}, $in{'dom'}, $in{'desc'}, $in{'lang'},
 		    $in{'email_def'} && $vdom->{'emailto'} ? $vdom->{'emailto'}:
