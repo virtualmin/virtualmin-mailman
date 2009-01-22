@@ -125,8 +125,7 @@ if (&virtual_server::master_admin() && &needs_mailman_list()) {
 	print "<b>",&text('index_mmlist'),"</b><p>\n";
 	print &ui_form_start("add.cgi");
 	print &ui_hidden("list", "mailman");
-	print &ui_table_start($text{'index_mmheader'}, undef, 2,
-			      [ "width=30%" ]);
+	print &ui_table_start($text{'index_mmheader'}, undef, 2);
 
 	print &ui_table_row($text{'index_email'},
 		    &ui_textbox("email", undef, 30));
