@@ -128,7 +128,7 @@ local ($list, $dom, $desc, $lang, $email, $pass) = @_;
 local $conf = &get_mailman_config();
 foreach my $c ("DEFAULT_URL_HOST", "DEFAULT_EMAIL_HOST") {
 	local $url = &find_value($c, $conf);
-	if ($url && $url =~ /has_not_been_edited/) {
+	if ($url && $url =~ /has_not_been_edited|hardy2/) {
 		&save_directive($conf, $c, &get_system_hostname());
 		}
 	}
