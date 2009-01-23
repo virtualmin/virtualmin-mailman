@@ -503,12 +503,20 @@ else {
 	if ($config{'mode'} == 1) {
 		&virtual_server::obtain_lock_mail($_[0])
 			if (defined(&virtual_server::obtain_lock_mail));
+		local @virts = &virtual_server::list_virtusers();
 		foreach my $l (keys %dlists) {
 			local $a;
 			foreach $a (@mailman_aliases) {
-				local $virt = { 'from' => ($a eq "post" ? $l :
-						   "$l-$a")."\@".$d->{'dom'},
-					'to' => [ "|$mailman_cmd $a $l" ] };
+				local $virt = {
+				  'from' => ($a eq "post" ? $l : "$l-$a").
+					    "\@".$d->{'dom'},
+				  'to' => [ "|$mailman_cmd $a $l" ]
+				  };
+				local ($c) = grep { $_->{'from'} eq
+						    $virt->{'from'} } @virts;
+				if ($c) {
+					&virtual_server::delete_virtuser($c);
+					}
 				&virtual_server::create_virtuser($virt);
 				}
 			}
