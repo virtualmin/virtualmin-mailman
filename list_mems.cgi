@@ -25,7 +25,8 @@ print &ui_form_columns_table(
 	"delete_member.cgi",
 	undef,
 	0,
-	undef,
+	[ [ "export_mems.cgi?list=".&urlize($in{'list'}).
+	    "&show=".&urlize($in{'show'}), $text{'mems_export'} ] ],
 	[ [ "list", $in{'list'} ],
 	  [ "show", $in{'show'} ] ],
 	[ $text{'mems_email'}, $text{'mems_type'}, $text{'index_action'} ],

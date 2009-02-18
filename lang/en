@@ -99,6 +99,7 @@ mems_add=Add Member
 mems_type=Type
 mems_digesty=Digest
 mems_digestn=Regular
+mems_export=Download list members
 
 addmem_err=Failed to add list member
 addmem_eemail=Missing or invalid email address

@@ -34,3 +34,5 @@ Fixed a bug that could break the virtualmin-base package install.
 ---- Changes since 5.1 ----
 Allow use of _ in mailing list names.
 Added a form for searching for addresses across all mailing lists.
+---- Changes since 5.3 ----
+Added link for downloading list members.
