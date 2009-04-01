@@ -387,7 +387,9 @@ if (!@lists) {
 	}
 
 # Tar up lists directories
-local $out = &backquote_command("cd $lists_dir && tar cf ".quotemeta($file)." ".join(" ", map { $_->{'list'} } @lists)." 2>&1");
+local $tar = defined(&virtual_server::get_tar_command) ?
+		&virtual_server::get_tar_command() : "tar";
+local $out = &backquote_command("cd $lists_dir && $tar cf ".quotemeta($file)." ".join(" ", map { $_->{'list'} } @lists)." 2>&1");
 if ($?) {
 	&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 	return 0;
@@ -410,7 +412,7 @@ else {
 			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
 		if (@files) {
 			local $out = &backquote_command(
-				"cd $archives_dir/private && tar cf ".
+				"cd $archives_dir/private && $tar cf ".
 				quotemeta($file."_private")." ".
 				join(" ", @files)." 2>&1");
 			if ($?) {
@@ -425,7 +427,7 @@ else {
 			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
 		if (@files) {
 			local $out = &backquote_command(
-				"cd $archives_dir/public && tar cf ".
+				"cd $archives_dir/public && $tar cf ".
 				quotemeta($file."_public")." ".
 				join(" ", @files)." 2>&1");
 			if ($?) {
@@ -483,7 +485,9 @@ if (@st && $st[7] == 0) {
 	}
 
 # Extract lists tar file
-local $out = &backquote_command("cd $lists_dir && tar xf ".quotemeta($file)." 2>&1");
+local $tar = defined(&virtual_server::get_tar_command) ?
+		&virtual_server::get_tar_command() : "tar";
+local $out = &backquote_command("cd $lists_dir && $tar xf ".quotemeta($file)." 2>&1");
 if ($?) {
 	&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 	return 0;
@@ -530,14 +534,14 @@ else {
 		&$virtual_server::first_print($text{'feat_rarchive'});
 		}
 	if (-r $file."_public") {
-		local $out = &backquote_command("cd $archives_dir/public && tar xf ".quotemeta($file."_public")." 2>&1");
+		local $out = &backquote_command("cd $archives_dir/public && $tar xf ".quotemeta($file."_public")." 2>&1");
 		if ($?) {
 			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 			return 0;
 			}
 		}
 	if (-r $file."_private") {
-		local $out = &backquote_command("cd $archives_dir/private && tar xf ".quotemeta($file."_private")." 2>&1");
+		local $out = &backquote_command("cd $archives_dir/private && $tar xf ".quotemeta($file."_private")." 2>&1");
 		if ($?) {
 			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 			return 0;
