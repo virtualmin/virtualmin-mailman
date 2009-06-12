@@ -7,7 +7,8 @@ require './virtualmin-mailman-lib.pl';
 ($list) = grep { $_->{'list'} eq $in{'list'} } @lists;
 &can_edit_list($list) || &error($text{'mems_ecannot'});
 
-&ui_print_header(&text('mems_sub', $in{'list'}), $text{'mems_title'}, "");
+$desc = &text('mems_sub', $in{'list'});
+&ui_print_header($desc, $text{'mems_title'}, "");
 
 # Build data for members table
 @mems = &list_members($list);
