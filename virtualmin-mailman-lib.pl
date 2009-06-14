@@ -30,6 +30,7 @@ if (!-x $mailman_cmd && $config{'alt_mailman_cmd'}) {
 	}
 $changepw_cmd = "$mailman_dir/bin/change_pw";
 $config_cmd = "$mailman_dir/bin/config_list";
+$withlist_cmd = "$mailman_dir/bin/withlist";
 $lists_dir = "$mailman_var/lists";
 $archives_dir = "$mailman_var/archives";
 $maillist_map = "relay_domains";

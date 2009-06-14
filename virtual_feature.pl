@@ -193,6 +193,7 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 		}
 
 	# Change domain for any lists
+	&$virtual_server::first_print($text{'feat_rename'});
 	local %lists;
 	&lock_file($lists_file);
 	&read_file($lists_file, \%lists);
@@ -201,10 +202,16 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 		if ($dom eq $_[1]->{'dom'}) {
 			$dom = $_[0]->{'dom'};
 			$lists{$f} = join("\t", $dom, $desc);
+			local $out = &backquote_logged(
+				"$withlist_cmd -l -r fix_url ".
+				quotemeta($f)." ".
+				"-v -u ".quotemeta($dom)." 2>&1");
 			}
 		}
 	&write_file($lists_file, \%lists);
 	&unlock_file($lists_file);
+	&$virtual_server::second_print(
+		$virtual_server::text{'setup_done'});
 	}
 }
 
