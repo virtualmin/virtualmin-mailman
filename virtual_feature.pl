@@ -213,6 +213,25 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	&$virtual_server::second_print(
 		$virtual_server::text{'setup_done'});
 	}
+
+# Change owner email, if needed
+if ($_[0]->{'emailto'} ne $_[1]->{'emailto'}) {
+	&$virtual_server::first_print($text{'feat_email'});
+	&read_file($lists_file, \%lists);
+	foreach my $f (keys %lists) {
+		local ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
+                if ($dom eq $_[0]->{'dom'}) {
+			# Get the owner email
+			my $owner = &get_list_config($f, "owner");
+			if ($owner =~ /'\Q$_[1]->{'emailto'}\E'/) {
+				$owner =~ s/'\Q$_[1]->{'emailto'}\E'/'$_[0]->{'emailto'}'/g;
+				&save_list_config($f, "owner", $owner);
+				}
+			}
+		}
+	&$virtual_server::second_print(
+		$virtual_server::text{'setup_done'});
+	}
 }
 
 # feature_delete(&domain, [keep-lists])

@@ -499,5 +499,49 @@ return sprintf "%s, %d %s %d %2.2d:%2.2d:%2.2d GMT",
 		$tm[2], $tm[1], $tm[0];
 }
 
+# get_list_config(list, [value])
+# Returns either a hash ref of all list configuration values (in Python format),
+# or a single value
+sub get_list_config
+{
+my ($list, $name) = @_;
+if ($name) {
+	my $c = &get_list_config($list);
+	return $c->{$name};
+	}
+else {
+	my $temp = &transname();
+	my %rv;
+	&execute_command("$config_cmd -o ".quotemeta($temp).
+			 " ".quotemeta($list));
+	&open_readfile(CONFIGLIST, $temp);
+	while(<CONFIGLIST>) {
+		s/\r|\n//g;
+		s/^\s*#.*$//;
+		if (/^\s*(\S+)\s*=\s*(.*)/) {
+			$rv{$1} = $2;
+			}
+		}
+	close(CONFIGLIST);
+	&unlink_file($temp);
+	return \%rv;
+	}
+}
+
+# save_list_config(list, name, value)
+# Update a single config setting for a list. The value must be in a python
+# format, like 'foo' or ['smeg', 'spod']
+sub save_list_config
+{
+my ($list, $name, $value) = @_;
+my $temp = &transname();
+&open_tempfile(CONFIG, ">$temp");
+&print_tempfile(CONFIG, $name." = ".$value."\n");
+&close_tempfile(CONFIG);
+local $out = &backquote_command("$config_cmd -i ".quotemeta($temp).
+				" ".quotemeta($list)." 2>&1 </dev/null");
+return $? ? $out : undef;
+}
+
 1;
 

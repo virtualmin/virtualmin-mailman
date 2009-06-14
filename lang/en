@@ -25,6 +25,7 @@ feat_nolists2=.. no lists found in backup
 feat_emailmanuser=The Unix user $1 has the shell $2, which would prevent Mailman commands from being run as that user
 feat_adminlist=Mailman administration list
 feat_rename=Changing domain name in Mailman configuration ..
+feat_email=Changing email address in Mailman configuration ..
 
 setup_map=Adding to Mailman domains list ..
 setup_alias=Adding Mailman alias and redirects to website configuration ..
