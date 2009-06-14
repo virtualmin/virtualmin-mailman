@@ -184,7 +184,7 @@ if (!exists($_[0]->{$module_name."limit"})) {
 # Called when a domain with this feature is modified
 sub feature_modify
 {
-if ($_[0]->{'dom'} ne $_[1]->{'dom'} && $config{'mode'} == 0) {
+if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	# Domain has been re-named
 	if ($config{'mode'} == 0) {
 		# Update filtering
