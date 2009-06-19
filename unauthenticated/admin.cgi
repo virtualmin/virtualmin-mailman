@@ -23,7 +23,8 @@ $prog =~ s/\.cgi$//;
 if ($lname) {
 	# Get the list, and from it the domain
 	($list) = grep { $_->{'list'} eq $lname } @lists;
-	&can_edit_list($list) || &error($text{'edit_ecannot'});
+	$list && &can_edit_list($list) || &error($text{'edit_ecannot'});
+	$list->{'dom'} || &error(&text('edit_edmailman2', $lname));
 	$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
 	}
 else {
@@ -35,8 +36,9 @@ else {
 		$dname =~ s/^(www|ftp|mail|lists)\.//i;
 		$d = &virtual_server::get_domain_by("dom", $dname);
 		}
-	$dname || &error(&text('edit_edname', &html_escape($dname)));
 	}
+$d || &error(&text('edit_edname', &html_escape($dname)));
+$d->{$module_name} || &error(&text('edit_edmailman', $dname));
 
 $cgiuser = &get_mailman_apache_user($d);
 $realhost = &get_system_hostname();
