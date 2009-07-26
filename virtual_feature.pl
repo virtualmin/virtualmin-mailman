@@ -51,11 +51,12 @@ return &mailman_check();
 # or an error message if not
 sub feature_depends
 {
-if (&needs_mailman_list()) {
+local ($d, $oldd) = @_;
+if (&needs_mailman_list() && (!$oldd || !$oldd->{$module_name})) {
 	return $text{'feat_emmlist'}.
 	       (&virtual_server::master_admin() ? &text('feat_emmlink', "../$module_name/index.cgi") : "");
 	}
-return $_[0]->{'mail'} || $config{'mode'} == 0 ? undef : $text{'feat_edepmail'};
+return $d->{'mail'} || $config{'mode'} == 0 ? undef : $text{'feat_edepmail'};
 }
 
 # feature_clash(&domain)
