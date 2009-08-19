@@ -41,12 +41,16 @@ $d || &error(&text('edit_edname', &html_escape($dname)));
 $d->{$module_name} || &error(&text('edit_edmailman', $dname));
 
 $cgiuser = &get_mailman_apache_user($d);
-$realhost = &get_system_hostname();
 $httphost = $ENV{'HTTP_HOST'};
 if ($httphost !~ /:\d+$/) {
 	# Need to add the port
 	$httphost .= ":".$ENV{'SERVER_PORT'};
 	}
+
+# Work out possible hostnames for URLs
+@realhosts = ( &get_system_hostname(),
+	       (map { $_->{'dom'} } grep { $_->{$module_name} }
+			&virtual_server::list_domains()) );
 
 $temp = &transname();
 open(TEMP, ">$temp");
@@ -73,7 +77,9 @@ while(<CGI>) {
 			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/unauthenticated\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)([\/ "'])/\/$module_name\/unauthenticated\/$2.cgi$3/g;
 			}
 		if (!/pipermail/) {
-			s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g;
+			foreach $realhost (@realhosts) {
+				s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g && last;
+				}
 			s/(http|https):\/\/(lists\.)?$d->{'dom'}\//$prot:\/\/$httphost\//g;
 			}
 		}
