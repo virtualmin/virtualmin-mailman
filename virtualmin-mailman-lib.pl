@@ -585,9 +585,30 @@ foreach my $p (@ports) {
 return 1;
 }
 
+# fix_webmin_mailman_urls(&domain)
+# Correct all mailman redirects to use current Webmin paths
 sub fix_webmin_mailman_urls
 {
-# XXX
+my ($d) = @_;
+my @ports = ( $d->{'web_port'},
+	      $d->{'ssl'} ? ( $d->{'web_sslport'} ) : ( ) );
+my $webminurl = &get_mailman_webmin_url($d);
+foreach my $p (@ports) {
+	my ($virt, $vconf, $conf) = &virtual_server::get_apache_virtual(
+					$d->{'dom'}, $p);
+	next if (!$virt);
+	my @rm = &apache::find_directive("RedirectMatch", $vconf);
+	foreach my $p ("/cgi-bin/mailman", "/mailman") {
+		@rm = grep { !/^\Q$p\E\// } @rm;
+		push(@rm, "$p/([^/\\.]*)(.cgi)?(.*) ".
+			  "$webminurl/$module_name/".
+			  "unauthenticated/\$1.cgi\$3");
+		}
+	&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
+	&flush_file_lines($virt->{'file'});
+	}
+&virtual_server::register_post_action(\&virtual_server::restart_apache);
+return undef;
 }
 
 1;

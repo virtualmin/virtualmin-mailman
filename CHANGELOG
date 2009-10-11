@@ -42,3 +42,4 @@ When a domain is renamed, lists' URLs and owner email addresses are updated.
 When accessing Mailman CGIs via Webmin on port 10000, the domain is validated to ensure that it exists in Virtualmin and has Mailman enabled.
 ---- Changes since 5.7 ----
 Added validation of redirection URLs from /mailman and /cgi-bin/mailman.
+Incorrect redirect URLs can be fixed using a new button on the module's main page.
