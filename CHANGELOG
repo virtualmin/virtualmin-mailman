@@ -40,3 +40,5 @@ Added link for downloading list members.
 Fixed a bug that caused lists to lose their domain association when a domain is renamed.
 When a domain is renamed, lists' URLs and owner email addresses are updated.
 When accessing Mailman CGIs via Webmin on port 10000, the domain is validated to ensure that it exists in Virtualmin and has Mailman enabled.
+---- Changes since 5.7 ----
+Added validation of redirection URLs from /mailman and /cgi-bin/mailman.

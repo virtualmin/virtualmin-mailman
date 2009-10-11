@@ -139,3 +139,6 @@ search_dom=Domain name
 search_actions=Actions
 search_delete=Delete member
 search_man=Manage list
+
+validate_eredirect=Missing Apache redirect for $1
+validate_eredirect2=Apache redirect for $1 goes to $2 instead of the correct Virtualmin URL under $3

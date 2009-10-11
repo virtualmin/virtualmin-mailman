@@ -123,29 +123,13 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 
 		# Add wrapper redirects
 		local @rm = &apache::find_directive("RedirectMatch", $vconf);
-		local $webminurl;
-		if ($config{'webminurl'}) {
-			$webminurl = $config{'webminurl'};
-			}
-		elsif ($ENV{'SERVER_PORT'}) {
-			# Running inside Webmin
-			$webminurl = uc($ENV{'HTTPS'}) eq "ON" ? "https"
-							       : "http";
-			$webminurl .= "://$_[0]->{'dom'}:$ENV{'SERVER_PORT'}";
-			}
-		else {
-			# From command line
-			local %miniserv;
-			&get_miniserv_config(\%miniserv);
-			$webminurl = $miniserv{'ssl'} ? "https" : "http";
-			$webminurl .= "://$_[0]->{'dom'}:$miniserv{'port'}";
-			}
+		local $webminurl = &get_mailman_webmin_url($_[0]);
 		foreach my $p ("/cgi-bin/mailman", "/mailman") {
 			local ($already) = grep { /^\Q$p\E\// } @rm;
 			if (!$already) {
-				push(@rm, "$p/([^/]*)(.*) ".
+				push(@rm, "$p/([^/\\.]*)(.cgi)?(.*) ".
 					  "$webminurl/$module_name/".
-					  "unauthenticated/\$1.cgi\$2");
+					  "unauthenticated/\$1.cgi\$3");
 				}
 			}
 		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
@@ -332,6 +316,54 @@ if (!$keep) {
 			$virtual_server::text{'setup_done'});
 		}
 	}
+}
+
+# feature_validate(&domain)
+# Make sure that needed Apache directives exist
+sub feature_validate
+{
+local ($d) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+				$d->{'dom'}, $d->{'web_port'});
+local @rm = &apache::find_directive_struct("RedirectMatch", $vconf);
+local $webminurl = &get_mailman_webmin_url($d);
+foreach my $p ("/cgi-bin/mailman", "/mailman") {
+	local ($rm) = grep { $_->{'words'}->[0] =~ /^\Q$p\E/ } @rm;
+	if (!$rm) {
+		return &text('validate_eredirect', "<tt>$p</tt>");
+		}
+	if ($rm->{'words'}->[1] !~ /^\Q$webminurl\E\//) {
+		return &text('validate_eredirect2', "<tt>$p</tt>",
+			     "<tt>$rm->{'words'}->[1]</tt>",
+			     "<tt>$webminurl</tt>");
+		}
+	}
+return undef;
+}
+
+# get_mailman_webmin_url(&domain)
+# Returns the correct URL for Webmin for redirects
+sub get_mailman_webmin_url
+{
+local ($d) = @_;
+local $webminurl;
+if ($config{'webminurl'}) {
+	$webminurl = $config{'webminurl'};
+	}
+elsif ($ENV{'SERVER_PORT'}) {
+	# Running inside Webmin
+	$webminurl = uc($ENV{'HTTPS'}) eq "ON" ? "https"
+					       : "http";
+	$webminurl .= "://$d->{'dom'}:$ENV{'SERVER_PORT'}";
+	}
+else {
+	# From command line
+	local %miniserv;
+	&get_miniserv_config(\%miniserv);
+	$webminurl = $miniserv{'ssl'} ? "https" : "http";
+	$webminurl .= "://$d->{'dom'}:$miniserv{'port'}";
+	}
+return $webminurl;
 }
 
 # feature_webmin(&main-domain, &all-domains)
