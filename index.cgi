@@ -82,6 +82,7 @@ if ($access{'max'} && @lists >= $access{'max'}) {
 	print $text{'index_max'},"<br>\n";
 	}
 else {
+	print &ui_hr();
 	print &ui_form_start("add.cgi");
 	print &ui_hidden("show", $in{'show'});
 	print &ui_table_start($text{'index_header'}, undef, 2);
@@ -122,6 +123,7 @@ else {
 
 # Show warning and form if 'mailman' list is missing
 if (&virtual_server::master_admin() && &needs_mailman_list()) {
+	print &ui_hr();
 	print "<b>",&text('index_mmlist'),"</b><p>\n";
 	print &ui_form_start("add.cgi");
 	print &ui_hidden("list", "mailman");
@@ -148,6 +150,7 @@ if (&virtual_server::master_admin() && &needs_mailman_list()) {
 	}
 
 # Form to search for members
+print &ui_hr();
 print &ui_form_start("search.cgi");
 print &ui_hidden("show", $in{'show'});
 print &ui_table_start($text{'index_sheader'}, undef, 2);
@@ -169,6 +172,22 @@ else {
 print &ui_table_end();
 print &ui_submit($text{'index_search'});
 print &ui_form_end();
+
+# Show button to correct redirects if needed
+foreach my $d (grep { &virtual_server::can_edit_domain($_) &&
+		      $_->{$module_name} } &virtual_server::list_domains()) {
+	if (!&check_webmin_mailman_urls($d)) {
+		push(@urldoms, $d);
+		}
+	}
+if (@urldoms) {
+	print &ui_hr();
+	print &ui_buttons_start();
+	print &ui_buttons_row("fixurls.cgi", $text{'index_fixurls'},
+			      &text('index_fixurlsdesc', scalar(@urldoms),
+				    &get_mailman_webmin_url($urldoms[0])));
+	print &ui_buttons_end();
+	}
 
 &ui_print_footer("/", $text{'index'});
 

@@ -539,5 +539,56 @@ local $out = &backquote_command("$config_cmd -i ".quotemeta($temp).
 return $? ? $out : undef;
 }
 
+# get_mailman_webmin_url(&domain)
+# Returns the correct URL for Webmin for redirects
+sub get_mailman_webmin_url
+{
+local ($d) = @_;
+local $webminurl;
+if ($config{'webminurl'}) {
+	$webminurl = $config{'webminurl'};
+	}
+elsif ($ENV{'SERVER_PORT'}) {
+	# Running inside Webmin
+	$webminurl = uc($ENV{'HTTPS'}) eq "ON" ? "https"
+					       : "http";
+	$webminurl .= "://$d->{'dom'}:$ENV{'SERVER_PORT'}";
+	}
+else {
+	# From command line
+	local %miniserv;
+	&get_miniserv_config(\%miniserv);
+	$webminurl = $miniserv{'ssl'} ? "https" : "http";
+	$webminurl .= "://$d->{'dom'}:$miniserv{'port'}";
+	}
+return $webminurl;
+}
+
+# check_webmin_mailman_urls(&domain)
+# Returns 1 if all redirects look OK, 0 if not
+sub check_webmin_mailman_urls
+{
+my ($d) = @_;
+my @ports = ( $d->{'web_port'},
+	      $d->{'ssl'} ? ( $d->{'web_sslport'} ) : ( ) );
+my $webminurl = &get_mailman_webmin_url($d);
+foreach my $p (@ports) {
+	my ($virt, $vconf) = &virtual_server::get_apache_virtual(
+				$d->{'dom'}, $p);
+	my @rm = &apache::find_directive_struct("RedirectMatch", $vconf);
+	foreach my $p ("/cgi-bin/mailman", "/mailman") {
+		my ($rm) = grep { $_->{'words'}->[0] =~ /^\Q$p\E/ } @rm;
+		return 0 if (!$rm ||
+			     $rm->{'words'}->[1] !~ /^\Q$webminurl\E\//);
+		}
+	}
+return 1;
+}
+
+sub fix_webmin_mailman_urls
+{
+# XXX
+}
+
 1;
 

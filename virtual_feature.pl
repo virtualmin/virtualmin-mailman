@@ -341,31 +341,6 @@ foreach my $p ("/cgi-bin/mailman", "/mailman") {
 return undef;
 }
 
-# get_mailman_webmin_url(&domain)
-# Returns the correct URL for Webmin for redirects
-sub get_mailman_webmin_url
-{
-local ($d) = @_;
-local $webminurl;
-if ($config{'webminurl'}) {
-	$webminurl = $config{'webminurl'};
-	}
-elsif ($ENV{'SERVER_PORT'}) {
-	# Running inside Webmin
-	$webminurl = uc($ENV{'HTTPS'}) eq "ON" ? "https"
-					       : "http";
-	$webminurl .= "://$d->{'dom'}:$ENV{'SERVER_PORT'}";
-	}
-else {
-	# From command line
-	local %miniserv;
-	&get_miniserv_config(\%miniserv);
-	$webminurl = $miniserv{'ssl'} ? "https" : "http";
-	$webminurl .= "://$d->{'dom'}:$miniserv{'port'}";
-	}
-return $webminurl;
-}
-
 # feature_webmin(&main-domain, &all-domains)
 # Returns a list of webmin module names and ACL hash references to be set for
 # the Webmin user when this feature is enabled

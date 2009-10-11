@@ -66,6 +66,8 @@ index_sdoms=Lists to search
 index_sdoms1=All lists in all domains
 index_sdoms0=Only lists in this domain
 index_search=Search
+index_fixurls=Fix Mailman URLs
+index_fixurlsdesc=Virtualmin has detected that $1 virtual servers have mailman redirect URLs that do not match the Virtualmin base URL like <tt>$2</tt>. Click this button to correct them.
 
 add_err=Failed to create mailing list
 add_ename=Missing or invalid list name - only letters, numbers, dot, dash and underscore are allowed
