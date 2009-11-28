@@ -116,10 +116,14 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 			$_[0]->{'dom'}, $p);
 		next if (!$virt);
 
-		# Add lists.$domain alias
-		local @sa = &apache::find_directive("ServerAlias", $vconf);
-		push(@sa, "lists.$_[0]->{'dom'}");
-		&apache::save_directive("ServerAlias", \@sa, $vconf, $conf);
+		# Add lists.$domain alias, if in special Postfix mode
+		if ($config{'mode'} == 0) {
+			local @sa = &apache::find_directive("ServerAlias",
+							    $vconf);
+			push(@sa, "lists.$_[0]->{'dom'}");
+			&apache::save_directive("ServerAlias",
+						\@sa, $vconf, $conf);
+			}
 
 		# Add wrapper redirects
 		local @rm = &apache::find_directive("RedirectMatch", $vconf);
