@@ -41,10 +41,21 @@ $d || &error(&text('edit_edname', &html_escape($dname)));
 $d->{$module_name} || &error(&text('edit_edmailman', $dname));
 
 $cgiuser = &get_mailman_apache_user($d);
-$httphost = $ENV{'HTTP_HOST'};
-if ($httphost !~ /:\d+$/) {
-	# Need to add the port
-	$httphost .= ":".$ENV{'SERVER_PORT'};
+if ($config{'rewriteurl'}) {
+	# Custom URL for Mailman, perhaps if behind proxy
+	($httphost, $httpport, $httppage, $httpssl) =
+		&parse_http_url($config{'rewriteurl'});
+	$httphost .= ":".$httpport if ($httpport != ($httpssl ? 443 : 80));
+	$prot = $httpssl ? "https" : "http";
+	}
+else {
+	# Same as supplied by browser
+	$httphost = $ENV{'HTTP_HOST'};
+	if ($httphost !~ /:\d+$/) {
+		# Need to add the port
+		$httphost .= ":".$ENV{'SERVER_PORT'};
+		}
+	$prot = $ENV{'HTTPS'} eq 'ON' ? "https" : "http";
 	}
 
 # Work out possible hostnames for URLs
@@ -63,7 +74,6 @@ else {
 print TEMP $qs;
 close(TEMP);
 $cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
-$prot = $ENV{'HTTPS'} eq 'ON' ? "https" : "http";
 $textarea = 0;
 open(CGI, "$cmd <$temp |");
 while(<CGI>) {
