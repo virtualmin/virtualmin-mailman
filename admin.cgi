@@ -55,6 +55,7 @@ else {
 
 # Work out possible hostnames for URLs
 @realhosts = ( &get_system_hostname(),
+	       $httphost,
 	       (map { $_->{'dom'} } grep { $_->{$module_name} }
 			&virtual_server::list_domains()) );
 
