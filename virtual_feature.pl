@@ -327,19 +327,24 @@ if (!$keep) {
 sub feature_validate
 {
 local ($d) = @_;
-local ($virt, $vconf) = &virtual_server::get_apache_virtual(
-				$d->{'dom'}, $d->{'web_port'});
-local @rm = &apache::find_directive_struct("RedirectMatch", $vconf);
-local $webminurl = &get_mailman_webmin_url($d);
-foreach my $p ("/cgi-bin/mailman", "/mailman") {
-	local ($rm) = grep { $_->{'words'}->[0] =~ /^\Q$p\E/ } @rm;
-	if (!$rm) {
-		return &text('validate_eredirect', "<tt>$p</tt>");
+if ($d->{'web'}) {
+	local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+					$d->{'dom'}, $d->{'web_port'});
+	if (!$virt) {
+		return &text('validate_eweb', $d->{'dom'});
 		}
-	if ($rm->{'words'}->[1] !~ /^\Q$webminurl\E\//) {
-		return &text('validate_eredirect2', "<tt>$p</tt>",
-			     "<tt>$rm->{'words'}->[1]</tt>",
-			     "<tt>$webminurl</tt>");
+	local @rm = &apache::find_directive_struct("RedirectMatch", $vconf);
+	local $webminurl = &get_mailman_webmin_url($d);
+	foreach my $p ("/cgi-bin/mailman", "/mailman") {
+		local ($rm) = grep { $_->{'words'}->[0] =~ /^\Q$p\E/ } @rm;
+		if (!$rm) {
+			return &text('validate_eredirect', "<tt>$p</tt>");
+			}
+		if ($rm->{'words'}->[1] !~ /^\Q$webminurl\E\//) {
+			return &text('validate_eredirect2', "<tt>$p</tt>",
+				     "<tt>$rm->{'words'}->[1]</tt>",
+				     "<tt>$webminurl</tt>");
+			}
 		}
 	}
 return undef;
