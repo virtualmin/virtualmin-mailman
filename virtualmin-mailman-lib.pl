@@ -547,6 +547,7 @@ local ($d) = @_;
 local $webminurl;
 if ($config{'webminurl'}) {
 	$webminurl = $config{'webminurl'};
+	$webminurl =~ s/\/+$//;
 	}
 elsif ($ENV{'SERVER_PORT'}) {
 	# Running inside Webmin
