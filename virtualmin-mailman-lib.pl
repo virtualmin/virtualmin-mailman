@@ -196,7 +196,7 @@ sub delete_list
 local ($list, $dom) = @_;
 
 # Run the remove command
-local $out = &backquote_logged("$rmlist_cmd $list 2>&1 </dev/null");
+local $out = &backquote_logged("$rmlist_cmd -a $list 2>&1 </dev/null");
 if ($?) {
 	return "<pre>$out</pre>";
 	}
