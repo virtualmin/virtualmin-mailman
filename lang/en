@@ -150,3 +150,4 @@ fixurls_title=Fixing Mailman URLs
 fixurls_fixing=Fixing virtual server $1 to use $2 ..
 fixurls_failed=.. failed : $1
 fixurls_done=.. done
+__norefs=1
