@@ -311,7 +311,7 @@ return sort { $a cmp $b } @rv;
 # Returns an array ref of mailman config options
 sub get_mailman_config
 {
-if (!defined(@mailman_config_cache)) {
+if (!length(@mailman_config_cache)) {
 	@mailman_config_cache = ( );
 	local $lnum = 0;
 	open(CONF, $mailman_config);
