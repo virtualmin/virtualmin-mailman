@@ -44,3 +44,5 @@ When accessing Mailman CGIs via Webmin on port 10000, the domain is validated to
 Added validation of redirection URLs from /mailman and /cgi-bin/mailman.
 Incorrect redirect URLs can be fixed using a new button on the module's main page.
 Added a configuration option for the URL to re-write Mailman links to, for use when accessing Virtualmin from behind a proxy.
+---- Changes since 6.0 ----
+The apache user is now added to the group that owns mailman archives, so that they are accessible via a symlink from each domain's HTML directory.
