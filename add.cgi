@@ -70,12 +70,14 @@ else {
 		}
 
 	# Create the list
+	$pass = $in{'pass_def'} && $parentdom ? $parentdom->{'pass'} :
+		$in{'pass_def'} ? $vdom->{'pass'} : $in{'pass'};
+	$pass || &error(&text('add_epass2', $vdom->{'dom'}));
 	$err = &create_list($in{'list'}, $in{'dom'}, $in{'desc'}, $in{'lang'},
 		    $in{'email_def'} && $vdom->{'emailto'} ? $vdom->{'emailto'}:
 		    $in{'email_def'} ? "$remote_user\@$in{'dom'}" :
 				       $in{'email'},
-		    $in{'pass_def'} && $parentdom ? $parentdom->{'pass'} :
-		    $in{'pass_def'} ? $vdom->{'pass'} : $in{'pass'});
+		    $pass);
 	&error($err) if ($err);
 	}
 

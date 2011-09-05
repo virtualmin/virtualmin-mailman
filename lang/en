@@ -76,6 +76,7 @@ add_eclash=A list with the same name already exists
 add_evdom=No Virtualmin domain found
 add_eemail=Missing or invalid email address
 add_epass=Missing password
+add_epass2=You selected to use the virtual server's password, but it is not available on this Virtualmin system
 add_ecmd=List creation command failed : $1
 add_einit=Failed to start Mailman queue runner : $1
 add_ealiases=The following email aliases clash with this mailing list : $1

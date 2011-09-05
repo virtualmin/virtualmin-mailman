@@ -113,8 +113,16 @@ else {
 	print &ui_table_row($text{'index_email'},
 		    &ui_opt_textbox("email", undef, 30, $text{'index_fv'}), 1);
 
-	print &ui_table_row($text{'index_pass'},
+	$dom = $in{'show'} ? &virtual_server::get_domain_by("dom", $in{'show'})
+			   : undef;
+	if ($dom && !$dom->{'pass'}) {
+		print &ui_table_row($text{'index_pass'},
+		    &ui_textbox("pass", undef, 30), 1);
+		}
+	else {
+		print &ui_table_row($text{'index_pass'},
 		    &ui_opt_textbox("pass", undef, 30, $text{'index_fv'}), 1);
+		}
 
 	print &ui_table_end();
 	print &ui_submit($text{'create'});
