@@ -3,3 +3,4 @@ mailman_var=/var/lib/mailman
 mailman_cmd=/usr/lib/mailman/mail/mailman
 mode=1
 no_redirects=0
+append_prefix=0

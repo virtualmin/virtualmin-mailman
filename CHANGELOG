@@ -46,3 +46,5 @@ Incorrect redirect URLs can be fixed using a new button on the module's main pag
 Added a configuration option for the URL to re-write Mailman links to, for use when accessing Virtualmin from behind a proxy.
 ---- Changes since 6.0 ----
 The apache user is now added to the group that owns mailman archives, so that they are accessible via a symlink from each domain's HTML directory.
+---- Changes since 6.1 ----
+Added a module configuration option to append the domain name to list names, to allow multiple lists with the same base name on the same system.

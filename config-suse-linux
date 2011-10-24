@@ -3,3 +3,4 @@ mode=1
 cgiuser=
 mailman_var=/var/lib/mailman
 no_redirects=0
+append_prefix=0

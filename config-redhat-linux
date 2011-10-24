@@ -1,3 +1,4 @@
 mailman_dir=/var/mailman
 mode=1
 no_redirects=0
+append_prefix=0

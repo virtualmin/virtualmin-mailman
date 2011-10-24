@@ -124,6 +124,10 @@ return undef;
 sub create_list
 {
 local ($list, $dom, $desc, $lang, $email, $pass) = @_;
+local $full_list = $list;
+if ($config{'append_prefix'}) {
+	$full_list .= "_".$dom;
+	}
 
 # Make sure our hostname is set properly
 local $conf = &get_mailman_config();
@@ -140,16 +144,16 @@ if ($lang) {
 	push(@args, "-l", $lang);
 	}
 if (&get_mailman_version() < 2.1) {
-	push(@args, $list);
+	push(@args, $full_list);
 	}
 elsif (!$dom) {
-	push(@args, $list);
+	push(@args, $full_list);
 	}
 elsif ($config{'mode'} == 0) {
-	push(@args, "$list\@lists.$dom");
+	push(@args, "$full_list\@lists.$dom");
 	}
 else {
-	push(@args, "$list\@$dom");
+	push(@args, "$full_list\@$dom");
 	}
 push(@args, $email);
 push(@args, $pass);
@@ -163,7 +167,7 @@ if ($dom) {
 	# Save domain and description
 	&lock_file($lists_file);
 	&read_file($lists_file, \%lists);
-	$lists{$list} = $dom."\t".$desc;
+	$lists{$full_list} = $dom."\t".$desc;
 	&write_file($lists_file, \%lists);
 	&unlock_file($lists_file);
 	}
@@ -176,7 +180,7 @@ if ($config{'mode'} == 1 && $dom) {
 	foreach $a (@mailman_aliases) {
 		local $virt = { 'from' => ($a eq "post" ? $list :
 					   "$list-$a")."\@".$dom,
-				'to' => [ "|$mailman_cmd $a $list" ] };
+				'to' => [ "|$mailman_cmd $a $full_list" ] };
 		&virtual_server::create_virtuser($virt);
 		}
 	# Sync alias copy virtusers, if supported
@@ -194,6 +198,8 @@ return undef;
 sub delete_list
 {
 local ($list, $dom) = @_;
+local $short_list = $list;
+$short_list =~ s/\_\Q$dom\E$//;
 
 # Run the remove command
 local $out = &backquote_logged("$rmlist_cmd -a $list 2>&1 </dev/null");
@@ -218,7 +224,10 @@ if ($config{'mode'} == 1) {
 	foreach $a (@mailman_aliases) {
 		local $vn = ($a eq "post" ? $list
 					  : "$list-$a")."\@".$dom;
-		local ($virt) = grep { $_->{'from'} eq $vn } @virts;
+		local $short_vn = ($a eq "post" ? $short_list
+					        : "$short_list-$a")."\@".$dom;
+		local ($virt) = grep { $_->{'from'} eq $vn ||
+				       $_->{'from'} eq $short_vn } @virts;
 		if ($virt) {
 			&virtual_server::delete_virtuser($virt);
 			}

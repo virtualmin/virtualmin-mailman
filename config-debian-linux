@@ -3,3 +3,4 @@ mode=1
 alt_mailman_cmd=/usr/lib/mailman/mail/mailman
 no_redirects=0
 mailman_templates=/var/lib/mailman/messages
+append_prefix=0
