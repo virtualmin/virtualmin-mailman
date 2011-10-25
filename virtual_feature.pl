@@ -660,9 +660,13 @@ local @rv;
 foreach my $l (&list_lists()) {
 	if ($d && $l->{'dom'} eq $d->{'dom'} ||
 	    !$d && $l->{'dom'}) {
+		my $short_list = $l->{'list'};
+		$short_list =~ s/_\Q$l->{'dom'}\E$//;
 		push(@rv, $l->{'list'}."\@".$l->{'dom'});
+		push(@rv, $short_list."\@".$l->{'dom'});
 		foreach my $a (@mailman_aliases) {
 			push(@rv, $l->{'list'}."-".$a."\@".$l->{'dom'});
+			push(@rv, $short_list."-".$a."\@".$l->{'dom'});
 			}
 		}
 	}
