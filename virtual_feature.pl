@@ -101,85 +101,7 @@ if ($config{'mode'} == 0) {
 if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	# Add server alias, and redirect for /cgi-bin/mailman and /mailman
 	# to anonymous wrappers
-	&$virtual_server::first_print($text{'setup_alias'});
-	&virtual_server::require_apache();
-	&virtual_server::obtain_lock_web($_[0]);
-	local $conf = &apache::get_config();
-	local @ports = ( $_[0]->{'web_port'},
-			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
-	local $added;
-	foreach my $p (@ports) {
-		local ($virt, $vconf) = &virtual_server::get_apache_virtual(
-			$_[0]->{'dom'}, $p);
-		next if (!$virt);
-
-		# Add lists.$domain alias, if in special Postfix mode
-		if ($config{'mode'} == 0) {
-			local @sa = &apache::find_directive("ServerAlias",
-							    $vconf);
-			push(@sa, "lists.$_[0]->{'dom'}");
-			&apache::save_directive("ServerAlias",
-						\@sa, $vconf, $conf);
-			}
-
-		# Add wrapper redirects
-		local @rm = &apache::find_directive("RedirectMatch", $vconf);
-		local $webminurl = &get_mailman_webmin_url($_[0]);
-		foreach my $p ("/cgi-bin/mailman", "/mailman") {
-			local ($already) = grep { /^\Q$p\E\// } @rm;
-			if (!$already) {
-				push(@rm, "$p/([^/\\.]*)(.cgi)?(.*) ".
-					  "$webminurl/$module_name/".
-					  "unauthenticated/\$1.cgi\$3");
-				}
-			}
-		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
-		$added++;
-
-		# Add alias from /pipermail to archives directory
-		local @al = &apache::find_directive("Alias", $vconf);
-		push(@al, "/pipermail $archives_dir/public");
-		&apache::save_directive("Alias", \@al, $vconf, $conf);
-		}
-	if ($added) {
-		&flush_file_lines();
-		&virtual_server::register_post_action(
-		    defined(&main::restart_apache) ? \&main::restart_apache
-					   : \&virtual_server::restart_apache);
-		&$virtual_server::second_print(
-			$virtual_server::text{'setup_done'});
-		}
-	else {
-		&$virtual_server::second_print(
-			$virtual_server::text{'delete_noapache'});
-		}
-	&virtual_server::release_lock_web($_[0]);
-
-	# Add the apache user to the mailman group, so that symlinks work
-	my $auser = &virtual_server::get_apache_user($_[0]);
-	my @st = stat("$archives_dir/public");
-	if ($auser && @st) {
-		&virtual_server::obtain_lock_unix($_[0]);
-		my ($group) = grep { $_->{'gid'} == $st[5] }
-				   &virtual_server::list_all_groups();
-		if ($group) {
-			my @mems = split(/,/, $group->{'members'});
-			if (&indexof($auser, @mems) < 0) {
-				my $oldgroup = { %$group };
-				$group->{'members'} = join(",", @mems, $auser);
-				&foreign_call($group->{'module'},
-					"set_group_envs", $group,
-					'MODIFY_GROUP', $oldgroup);
-				&foreign_call($group->{'module'},
-					"making_changes");
-				&foreign_call($group->{'module'},
-					"modify_group", $oldgroup, $group);
-				&foreign_call($group->{'module'},
-					"made_changes");
-				}
-			}
-		&virtual_server::release_lock_unix($_[0]);
-		}
+	&setup_mailman_web_redirects($_[0]);
 	}
 
 # Set default limit from template
@@ -242,6 +164,11 @@ if ($_[0]->{'emailto'} ne $_[1]->{'emailto'}) {
 		}
 	&$virtual_server::second_print(
 		$virtual_server::text{'setup_done'});
+	}
+
+# Setup web redirects if website was just enabled
+if (!$_[1]->{'web'} && $_[0]->{'web'} && !$config{'no_redirects'}) {
+	&setup_mailman_web_redirects($_[0]);
 	}
 }
 
@@ -704,6 +631,91 @@ elsif ($in->{$input_name.'_mode'} == 1) {
 else {
 	$in->{$input_name} =~ /^\d+$/ || &error($text{'tmpl_elimit'});
 	$tmpl->{$module_name."limit"} = $in->{$input_name};
+	}
+}
+
+# setup_mailman_web_redirects(&domain)
+# Configure Apache to support mailman CGIs for this domain
+sub setup_mailman_web_redirects
+{
+&$virtual_server::first_print($text{'setup_alias'});
+&virtual_server::require_apache();
+&virtual_server::obtain_lock_web($_[0]);
+local $conf = &apache::get_config();
+local @ports = ( $_[0]->{'web_port'},
+		 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
+local $added;
+foreach my $p (@ports) {
+	local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+		$_[0]->{'dom'}, $p);
+	next if (!$virt);
+
+	# Add lists.$domain alias, if in special Postfix mode
+	if ($config{'mode'} == 0) {
+		local @sa = &apache::find_directive("ServerAlias",
+						    $vconf);
+		push(@sa, "lists.$_[0]->{'dom'}");
+		&apache::save_directive("ServerAlias",
+					\@sa, $vconf, $conf);
+		}
+
+	# Add wrapper redirects
+	local @rm = &apache::find_directive("RedirectMatch", $vconf);
+	local $webminurl = &get_mailman_webmin_url($_[0]);
+	foreach my $p ("/cgi-bin/mailman", "/mailman") {
+		local ($already) = grep { /^\Q$p\E\// } @rm;
+		if (!$already) {
+			push(@rm, "$p/([^/\\.]*)(.cgi)?(.*) ".
+				  "$webminurl/$module_name/".
+				  "unauthenticated/\$1.cgi\$3");
+			}
+		}
+	&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
+	$added++;
+
+	# Add alias from /pipermail to archives directory
+	local @al = &apache::find_directive("Alias", $vconf);
+	push(@al, "/pipermail $archives_dir/public");
+	&apache::save_directive("Alias", \@al, $vconf, $conf);
+	}
+if ($added) {
+	&flush_file_lines();
+	&virtual_server::register_post_action(
+	    defined(&main::restart_apache) ? \&main::restart_apache
+				   : \&virtual_server::restart_apache);
+	&$virtual_server::second_print(
+		$virtual_server::text{'setup_done'});
+	}
+else {
+	&$virtual_server::second_print(
+		$virtual_server::text{'delete_noapache'});
+	}
+&virtual_server::release_lock_web($_[0]);
+
+# Add the apache user to the mailman group, so that symlinks work
+my $auser = &virtual_server::get_apache_user($_[0]);
+my @st = stat("$archives_dir/public");
+if ($auser && @st) {
+	&virtual_server::obtain_lock_unix($_[0]);
+	my ($group) = grep { $_->{'gid'} == $st[5] }
+			   &virtual_server::list_all_groups();
+	if ($group) {
+		my @mems = split(/,/, $group->{'members'});
+		if (&indexof($auser, @mems) < 0) {
+			my $oldgroup = { %$group };
+			$group->{'members'} = join(",", @mems, $auser);
+			&foreign_call($group->{'module'},
+				"set_group_envs", $group,
+				'MODIFY_GROUP', $oldgroup);
+			&foreign_call($group->{'module'},
+				"making_changes");
+			&foreign_call($group->{'module'},
+				"modify_group", $oldgroup, $group);
+			&foreign_call($group->{'module'},
+				"made_changes");
+			}
+		}
+	&virtual_server::release_lock_unix($_[0]);
 	}
 }
 
