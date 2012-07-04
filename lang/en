@@ -12,6 +12,7 @@ feat_emailmancmd=The mailman program $1 was not found on your system.
 feat_edepmail=Mailman cannot be enabled unless mail is.
 feat_emmlist=Mailman cannot be enabled unless the administration list <tt>mailman</tt> has been created.
 feat_emmlink=This can be done in the <a href='$1'>Mailman plugin module</a>.
+feat_eqrunner=The mailman queue processor $1 is not running on your system. It can be started in the <a href='$2'>Bootup and Shutdown</a> module.
 feat_backup=Creating backup of Mailman mailing lists ..
 feat_failed=.. TAR failed : $1
 feat_restore=Restoring Mailman mailing lists ..

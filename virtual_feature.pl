@@ -43,7 +43,19 @@ return "label";
 # or an error message if not
 sub feature_check
 {
-return &mailman_check();
+my $err = &mailman_check();
+return $err if ($err);
+
+# Check if qrunner is running
+local $qrunner = "$mailman_dir/bin/qrunner";
+if (-x $qrunner) {
+	local ($pid) = &find_byname("qrunner");
+	if (!$pid) {
+		return &text('feat_eqrunner', "<tt>$qrunner</tt>", "/init/");
+		}
+	}
+
+return undef;
 }
 
 # feature_depends(&domain)
