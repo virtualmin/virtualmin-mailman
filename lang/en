@@ -2,6 +2,7 @@ feat_name=Mailman
 feat_losing=Mailman mailing lists will be disabled for the domain
 feat_disname=Mailman
 feat_label=Allow Mailman mailing lists?
+feat_label2=Mailman mailing lists
 feat_emailman=The Mailman directory $1 does not exist or is incorrect.
 feat_emailman2=The Mailman data directory $1 does not exist or is incorrect.
 feat_efile=The Postfix file $1 used for enabling Mailman does not exist. You may want to adjust the configuration of this module to use normal virtusers.
