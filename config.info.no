@@ -1,0 +1,10 @@
+mailman_dir=Mailman base-katalog,3,Standard
+mailman_var=Mailman data katalog,3,Samme som base-katalog
+mailman_cmd=Full sti til mailman kommando,3,Automatisk
+mailman_templates=Katalog for Mailman meldingsmaler,3,Under base-katalog
+mode=Metode for oppretting av liste-alias,1,1-Legg til normal virtusers,0-Bruk Postfix maillist map
+cgiuser=Bruker som mailmain programmer skal kj&#248;res som,3,Apache webtjener bruker
+no_redirects=Legg Apache redirigeringer til Webmin Mailman modul,1,0-Ja,1-Nei
+webminurl=URL til Webmin i Apache konfigurasjon,3,Automatisk
+manage_url=URL for Administrer knapp,3,Innebygde Mailman program wrappere
+rewriteurl=Base URL for lenker i Mailman UI,3,Automatisk
