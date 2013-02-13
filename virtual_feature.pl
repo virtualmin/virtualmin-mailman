@@ -325,6 +325,11 @@ else {
 	}
 }
 
+sub feature_modules
+{
+return ( [ $module_name, $text{'feat_module'} ] );
+}
+
 # feature_limits_input(&domain)
 # Returns HTML for editing limits related to this plugin
 sub feature_limits_input

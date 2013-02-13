@@ -28,6 +28,7 @@ feat_emailmanuser=The Unix user $1 has the shell $2, which would prevent Mailman
 feat_adminlist=Mailman administration list
 feat_rename=Changing domain name in Mailman configuration ..
 feat_email=Changing email address in Mailman configuration ..
+feat_module=Virtualmin Mailman Mailing Lists (for managing lists)
 
 setup_map=Adding to Mailman domains list ..
 setup_alias=Adding Mailman alias and redirects to website configuration ..
