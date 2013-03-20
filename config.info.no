@@ -8,3 +8,4 @@ no_redirects=Legg Apache redirigeringer til Webmin Mailman modul,1,0-Ja,1-Nei
 webminurl=URL til Webmin i Apache konfigurasjon,3,Automatisk
 manage_url=URL for Administrer knapp,3,Innebygde Mailman program wrappere
 rewriteurl=Base URL for lenker i Mailman UI,3,Automatisk
+append_prefix=Legg domenenavnet til listenavn?,1,1-Ja,0-Nei

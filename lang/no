@@ -48,10 +48,13 @@ feat_emailmanuser=Unix brukeren $1 benytter skallet $2. Dette kan forhindre Mail
 feat_emmlink=Dette kan gj&#248;res i <a href='$1'>Mailman tilleggsmodulen</a>.
 feat_emmlist=Mailman kan ikke aktiveres med mindre administrasjonslisten <tt>mailman</tt> er opprettet.
 feat_epostfix=Mailman e-postlister er bare tilgjengelig n&#229;r du bruker Postfix e-post tjeneren.
+feat_eqrunner=Mailman k&#248;-prosessor $1 kj&#248;rer ikke p&#229; systemet ditt. Den kan startes i modulen <a href='$2'>Oppstart og avstenging</a>.
 feat_etransport=Postfix transport-tilordningsfilen definert med <tt>transport_maps</tt> er ikke satt i e-post tjenerens konfigurasjonsfil
 feat_failed=.. TAR feilet : $1
 feat_label=Tillat Mailman e-post lister?
+feat_label2=Mailman e-post lister
 feat_losing=Mailman e-post lister vli bli deaktivert for domenet
+feat_module=Virtualmin Mailman e-post lister (for administrasjon av lister)
 feat_name=Mailman
 feat_noarchive=.. ingen arkiverte meldinger funnet.
 feat_nolists=.. ingen lister funnet
