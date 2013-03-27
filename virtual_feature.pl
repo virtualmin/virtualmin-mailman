@@ -573,8 +573,8 @@ sub feature_backup_opts
 {
 local ($opts) = @_;
 if (-d $archives_dir) {
-	return "(".&ui_checkbox("virtualmin_mailman_archive", 1,
-			    $text{'feat_archive'}, $opts->{'archive'}).")";
+	return &ui_checkbox("virtualmin_mailman_archive", 1,
+			    $text{'feat_archive'}, $opts->{'archive'});
 	}
 else {
 	return undef;
