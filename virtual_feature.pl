@@ -248,6 +248,11 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 			@rm = grep { !/^\Q$p\E\// } @rm;
 			}
 		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
+
+		# Remove pipermail alias
+		local @al = &apache::find_directive("Alias", $vconf);
+		@al = grep { !/^\/pipermail\s/ } @al;
+		&apache::save_directive("Alias", \@al, $vconf, $conf);
 		$deleted++;
 		}
 	if ($deleted) {
@@ -693,8 +698,11 @@ foreach my $p (@ports) {
 
 	# Add alias from /pipermail to archives directory
 	local @al = &apache::find_directive("Alias", $vconf);
-	push(@al, "/pipermail $archives_dir/public");
-	&apache::save_directive("Alias", \@al, $vconf, $conf);
+	local ($already) = grep { /^\/pipermail\s/ } @al;
+	if (!$already) {
+		push(@al, "/pipermail $archives_dir/public");
+		&apache::save_directive("Alias", \@al, $vconf, $conf);
+		}
 	}
 if ($added) {
 	&flush_file_lines();
