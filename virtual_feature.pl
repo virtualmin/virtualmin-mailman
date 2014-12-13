@@ -385,13 +385,15 @@ local @lists = grep { $_->{'dom'} eq $d->{'dom'} } &list_lists();
 
 if (!@lists) {
 	# No lists, so we can skip most of this
-	open(EMPTY, ">$file");
-	close(EMPTY);
+	&virtual_server::open_tempfile_as_domain_user($d, EMPTY, ">$file");
+	&virtual_server::close_tempfile_as_domain_user($d, EMPTY);
 	if ($opts->{'archive'} && -d $archives_dir) {
-		open(EMPTY, ">".$file."_private");
-		close(EMPTY);
-		open(EMPTY, ">".$file."_public");
-		close(EMPTY);
+		&virtual_server::open_tempfile_as_domain_user(
+			$d, EMPTY, ">".$file."_private");
+		&virtual_server::close_tempfile_as_domain_user($d, EMPTY);
+		&virtual_server::open_tempfile_as_domain_user(
+			$d, EMPTY, ">".$file."_public");
+		&virtual_server::close_tempfile_as_domain_user($d, EMPTY);
 		}
 	&$virtual_server::second_print($text{'feat_nolists'});
 	return 1;
@@ -400,18 +402,24 @@ if (!@lists) {
 # Tar up lists directories
 local $tar = defined(&virtual_server::get_tar_command) ?
 		&virtual_server::get_tar_command() : "tar";
-local $out = &backquote_command("cd $lists_dir && $tar cf ".quotemeta($file)." ".join(" ", map { $_->{'list'} } @lists)." 2>&1");
+local $temp = &transname();
+local $out = &backquote_command(
+	"cd $lists_dir && $tar cf ".quotemeta($temp)." ".
+	join(" ", map { $_->{'list'} } @lists)." 2>&1");
 if ($?) {
 	&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 	return 0;
 	}
 else {
 	# Create file of list names and descriptions
+	&virtual_server::copy_write_as_domain_user($d, $temp, $file);
+	&unlink_file($temp);
 	local %dlists;
 	foreach my $l (@lists) {
 		$dlists{$l->{'list'}} = $l->{'desc'};
 		}
-	&write_file($file."_lists", \%dlists);
+	&virtual_server::write_as_domain_user($d,
+		sub { &write_file($file."_lists", \%dlists) });
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 
 	# Tar up archive directories, if selected
@@ -422,14 +430,18 @@ else {
 		local @files = grep { -e "$archives_dir/private/$_" }
 			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
 		if (@files) {
+			local $temp = &transname();
 			local $out = &backquote_command(
 				"cd $archives_dir/private && $tar cf ".
-				quotemeta($file."_private")." ".
+				quotemeta($temp)." ".
 				join(" ", @files)." 2>&1");
 			if ($?) {
-				&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
+				&$virtual_server::second_print(
+				  &text('feat_failed', "<pre>$out</pre>"));
 				return 0;
 				}
+			&copy_write_as_domain_user($d, $temp, $file."_private");
+			&unlink_file($temp);
 			$anyfiles += scalar(@files);
 			}
 
@@ -437,14 +449,18 @@ else {
 		local @files = grep { -e "$archives_dir/public/$_" }
 			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
 		if (@files) {
+			local $temp = &transname();
 			local $out = &backquote_command(
 				"cd $archives_dir/public && $tar cf ".
-				quotemeta($file."_public")." ".
+				quotemeta($temp)." ".
 				join(" ", @files)." 2>&1");
 			if ($?) {
-				&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
+				&$virtual_server::second_print(
+				  &text('feat_failed', "<pre>$out</pre>"));
 				return 0;
 				}
+			&copy_write_as_domain_user($d, $temp, $file."_public");
+			&unlink_file($temp);
 			$anyfiles += scalar(@files);
 			}
 		if ($anyfiles) {
