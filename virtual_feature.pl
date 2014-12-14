@@ -440,7 +440,8 @@ else {
 				  &text('feat_failed', "<pre>$out</pre>"));
 				return 0;
 				}
-			&copy_write_as_domain_user($d, $temp, $file."_private");
+			&virtual_server::copy_write_as_domain_user(
+				$d, $temp, $file."_private");
 			&unlink_file($temp);
 			$anyfiles += scalar(@files);
 			}
@@ -459,7 +460,8 @@ else {
 				  &text('feat_failed', "<pre>$out</pre>"));
 				return 0;
 				}
-			&copy_write_as_domain_user($d, $temp, $file."_public");
+			&virtual_server::copy_write_as_domain_user(
+				$d, $temp, $file."_public");
 			&unlink_file($temp);
 			$anyfiles += scalar(@files);
 			}
