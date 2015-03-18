@@ -271,7 +271,7 @@ if ($_[0]->{'digest'} eq 'y') {
 	$cmd .= " -d $temp";
 	}
 else {
-	$cmd .= " -n $temp";
+	$cmd .= " -r $temp";
 	}
 if ($_[0]->{'welcome'}) {
 	$cmd .= " -w ".$_[0]->{'welcome'};
