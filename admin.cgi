@@ -1,7 +1,14 @@
 #!/usr/local/bin/perl
 # Run a mailman CGI program, and display output with Webmin header
+use strict;
+use warnings;
+our (%text, %config);
+our $module_name;
+our $mailman_dir;
+our $doneheaders; # XXX I'm not sure about this one.
 
 require './virtualmin-mailman-lib.pl';
+my $lname;
 if ($ENV{'PATH_INFO'} =~ /^\/([^\/]+)(.*)/) {
 	$lname = $1;
 	}
@@ -12,20 +19,21 @@ elsif ($ENV{'PATH_INFO'} eq '' || $ENV{'PATH_INFO'} eq '/') {
 else {
 	&error($text{'edit_eurl'});
 	}
-$prog = $ENV{'SCRIPT_NAME'};
+my $prog = $ENV{'SCRIPT_NAME'};
 $prog =~ s/^.*\///;
 $prog =~ s/\.cgi$//;
 
-@lists = &list_lists();
+my @lists = &list_lists();
+my $d;
 if ($lname) {
 	# Get the list, and from it the domain
-	($list) = grep { $_->{'list'} eq $lname } @lists;
+	my ($list) = grep { $_->{'list'} eq $lname } @lists;
 	&can_edit_list($list) || &error($text{'edit_ecannot'});
 	$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
 	}
 else {
 	# Get the domain from the URL
-	$dname = $ENV{'HTTP_HOST'};
+	my $dname = $ENV{'HTTP_HOST'};
 	$dname =~ s/:\d+$//;
 	$d = &virtual_server::get_domain_by("dom", $dname);
 	if (!$d) {
@@ -35,10 +43,11 @@ else {
 	$dname || &error(&text('edit_edname', &html_escape($dname)));
 	}
 
-$cgiuser = &get_mailman_apache_user($d);
+my $cgiuser = &get_mailman_apache_user($d);
+my ($prot, $httphost);
 if ($config{'rewriteurl'}) {
 	# Custom URL for Mailman, perhaps if behind proxy
-	($httphost, $httpport, $httppage, $httpssl) =
+	my ($httphost, $httpport, $httppage, $httpssl) =
 		&parse_http_url($config{'rewriteurl'});
 	$httphost .= ":".$httpport if ($httpport != ($httpssl ? 443 : 80));
 	$prot = $httpssl ? "https" : "http";
@@ -54,27 +63,29 @@ else {
 	}
 
 # Work out possible hostnames for URLs
-@realhosts = ( &get_system_hostname(),
+my @realhosts = ( &get_system_hostname(),
 	       $httphost,
 	       (map { $_->{'dom'} } grep { $_->{$module_name} }
 			&virtual_server::list_domains()) );
 
 # Read posted data
-$temp = &transname();
-open(TEMP, ">$temp");
+my $temp = &transname();
+open(my $TEMP, ">", "$temp");
+my $qs;
 if (defined(&read_fully)) {
-	&read_fully(STDIN, \$qs, $ENV{'CONTENT_LENGTH'});
+	&read_fully($STDIN, \$qs, $ENV{'CONTENT_LENGTH'});
 	}
 else {
 	read(STDIN, $qs, $ENV{'CONTENT_LENGTH'});
 	}
-print TEMP $qs;
-close(TEMP);
+print $TEMP $qs;
+close($TEMP);
 
 # Run the real command, and fix up output
-$cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
-$textarea = 0;
-open(CGI, "$cmd <$temp |");
+my $cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
+my $textarea = 0;
+my ($headers, $body);
+open(my $CGI, "<", "$cmd <$temp |");
 while(<CGI>) {
 	# Check if we are in a textarea
 	if (/<textarea/i) { $textarea = 1; }
@@ -86,7 +97,7 @@ while(<CGI>) {
 			s/\/(cgi-bin\/)?mailman\/([^\/ "']+)\.cgi/\/$module_name\/$2.cgi/g || s/\/(cgi-bin\/)?mailman\/([^\/ "']+)([\/ "'])/\/$module_name\/$2.cgi$3/g;
 			}
                 if (!/pipermail/) {
-			foreach $realhost (@realhosts) {
+			foreach my $realhost (@realhosts) {
 				s/(http|https):\/\/$realhost\//$prot:\/\/$httphost\//g && last;
 				}
 			s/(http|https):\/\/(lists\.)?$d->{'dom'}\//$prot:\/\/$httphost\//g;
@@ -109,6 +120,7 @@ while(<CGI>) {
 close(CGI);
 
 print $headers;
+my $title;
 if ($body =~ /<title>([^>]*)<\/title>/i) {
 	$title = $1;
 	}
@@ -117,5 +129,3 @@ $body =~ s/<\/body[^>]*>[\000-\377]*//i;
 &ui_print_header(undef, $title, "");
 print $body;
 &ui_print_footer("", $text{'index_return'});
-
-

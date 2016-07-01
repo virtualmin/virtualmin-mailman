@@ -1,7 +1,21 @@
 # Defines functions for this feature
+use strict;
+use warnings;
+our (%text, %config);
+our $module_name;
+our $mailman_dir;
+our $mailman_cmd;
+our $maillist_map;
+our $maillist_file;
+our $transport_map;
+our $lists_file;
+our $lists_dir;
+our $withlist_cmd;
+our $archives_dir;
+our @mailman_aliases;
 
 require 'virtualmin-mailman-lib.pl';
-$input_name = $module_name;
+my $input_name = $module_name;
 $input_name =~ s/[^A-Za-z0-9]/_/g;
 
 # feature_name()
@@ -30,7 +44,7 @@ return $text{'feat_disname'};
 # editing form
 sub feature_label
 {
-local ($edit) = @_;
+my ($edit) = @_;
 return $edit ? $text{'feat_label2'} : $text{'feat_label'};
 }
 
@@ -48,9 +62,9 @@ my $err = &mailman_check();
 return $err if ($err);
 
 # Check if qrunner is running
-local $qrunner = "$mailman_dir/bin/qrunner";
+my $qrunner = "$mailman_dir/bin/qrunner";
 if (-x $qrunner) {
-	local ($pid) = &find_byname("qrunner");
+	my ($pid) = &find_byname("qrunner");
 	if (!$pid) {
 		return &text('feat_eqrunner', "<tt>$qrunner</tt>", "/init/");
 		}
@@ -64,7 +78,7 @@ return undef;
 # or an error message if not
 sub feature_depends
 {
-local ($d, $oldd) = @_;
+my ($d, $oldd) = @_;
 if (&needs_mailman_list() && (!$oldd || !$oldd->{$module_name})) {
 	return $text{'feat_emmlist'}.
 	       (&virtual_server::master_admin() ? &text('feat_emmlink', "../$module_name/index.cgi") : "");
@@ -119,7 +133,7 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 
 # Set default limit from template
 if (!exists($_[0]->{$module_name."limit"})) {
-	local $tmpl = &virtual_server::get_template($_[0]->{'template'});
+	my $tmpl = &virtual_server::get_template($_[0]->{'template'});
 	$_[0]->{$module_name."limit"} =
 		$tmpl->{$module_name."limit"} eq "none" ? "" :
 		 $tmpl->{$module_name."limit"};
@@ -140,15 +154,15 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 
 	# Change domain for any lists
 	&$virtual_server::first_print($text{'feat_rename'});
-	local %lists;
+	my %lists;
 	&lock_file($lists_file);
 	&read_file($lists_file, \%lists);
 	foreach my $f (keys %lists) {
-		local ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
+		my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
 		if ($dom eq $_[1]->{'dom'}) {
 			$dom = $_[0]->{'dom'};
 			$lists{$f} = join("\t", $dom, $desc);
-			local $out = &backquote_logged(
+			my $out = &backquote_logged(
 				"$withlist_cmd -l -r fix_url ".
 				quotemeta($f)." ".
 				"-v -u ".quotemeta($dom)." 2>&1");
@@ -163,9 +177,10 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 # Change owner email, if needed
 if ($_[0]->{'emailto'} ne $_[1]->{'emailto'}) {
 	&$virtual_server::first_print($text{'feat_email'});
+	my %lists;
 	&read_file($lists_file, \%lists);
 	foreach my $f (keys %lists) {
-		local ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
+		my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
                 if ($dom eq $_[0]->{'dom'}) {
 			# Get the owner email
 			my $owner = &get_list_config($f, "owner");
@@ -189,15 +204,15 @@ if (!$_[1]->{'web'} && $_[0]->{'web'} && !$config{'no_redirects'}) {
 # Called when this feature is disabled, or when the domain is being deleted
 sub feature_delete
 {
-local ($d, $keep) = @_;
+my ($d, $keep) = @_;
 if ($config{'mode'} == 0) {
 	# Remove postfix config
 	&$virtual_server::first_print($text{'delete_map'});
 	&foreign_require("postfix", "postfix-lib.pl");
 	&virtual_server::obtain_lock_mail($_[0]);
-	local $ok = 0;
-	local $mmap = &postfix::get_maps($maillist_map, [ $maillist_file ]);
-	local ($maillist) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
+	my $ok = 0;
+	my $mmap = &postfix::get_maps($maillist_map, [ $maillist_file ]);
+	my ($maillist) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
 				 @$mmap;
 	if ($maillist) {
 		&postfix::delete_mapping($maillist_map, $maillist);
@@ -205,8 +220,8 @@ if ($config{'mode'} == 0) {
 					       [ $maillist_file ]);
 		$ok++;
 		}
-	local $tmap = &postfix::get_maps($transport_map);
-	local ($trans) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
+	my $tmap = &postfix::get_maps($transport_map);
+	my ($trans) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
 			      @$tmap;
 	if ($trans) {
 		&postfix::delete_mapping($transport_map, $trans);
@@ -228,29 +243,29 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 	&$virtual_server::first_print($text{'delete_alias'});
 	&virtual_server::require_apache();
 	&virtual_server::obtain_lock_web($_[0]);
-	local $conf = &apache::get_config();
-	local @ports = ( $_[0]->{'web_port'},
+	my $conf = &apache::get_config();
+	my @ports = ( $_[0]->{'web_port'},
 			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
-	local $deleted;
+	my $deleted;
 	foreach my $p (@ports) {
-		local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+		my ($virt, $vconf) = &virtual_server::get_apache_virtual(
 			$_[0]->{'dom'}, $p);
 		next if (!$virt);
 
 		# Remove server alias
-		local @sa = &apache::find_directive("ServerAlias", $vconf);
+		my @sa = &apache::find_directive("ServerAlias", $vconf);
 		@sa = grep { $_ ne "lists.$_[0]->{'dom'}" } @sa;
 		&apache::save_directive("ServerAlias", \@sa, $vconf, $conf);
 
 		# Remove redirects
-		local @rm = &apache::find_directive("RedirectMatch", $vconf);
+		my @rm = &apache::find_directive("RedirectMatch", $vconf);
 		foreach my $p ("/cgi-bin/mailman", "/mailman") {
 			@rm = grep { !/^\Q$p\E\// } @rm;
 			}
 		&apache::save_directive("RedirectMatch", \@rm, $vconf, $conf);
 
 		# Remove pipermail alias
-		local @al = &apache::find_directive("Alias", $vconf);
+		my @al = &apache::find_directive("Alias", $vconf);
 		@al = grep { !/^\/pipermail\s/ } @al;
 		&apache::save_directive("Alias", \@al, $vconf, $conf);
 		$deleted++;
@@ -272,11 +287,11 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 
 # Remove mailing lists
 if (!$keep) {
-	local @lists = grep { $_->{'dom'} eq $_[0]->{'dom'} } &list_lists();
+	my @lists = grep { $_->{'dom'} eq $_[0]->{'dom'} } &list_lists();
 	if (@lists) {
 		&$virtual_server::first_print(&text('delete_lists',
 						    scalar(@lists)));
-		foreach $l (@lists) {
+		foreach my $l (@lists) {
 			&delete_list($l->{'list'}, $l->{'dom'});
 			}
 		&$virtual_server::second_print(
@@ -289,17 +304,17 @@ if (!$keep) {
 # Make sure that needed Apache directives exist
 sub feature_validate
 {
-local ($d) = @_;
+my ($d) = @_;
 if ($d->{'web'}) {
-	local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+	my ($virt, $vconf) = &virtual_server::get_apache_virtual(
 					$d->{'dom'}, $d->{'web_port'});
 	if (!$virt) {
 		return &text('validate_eweb', $d->{'dom'});
 		}
-	local @rm = &apache::find_directive_struct("RedirectMatch", $vconf);
-	local $webminurl = &get_mailman_webmin_url($d);
+	my @rm = &apache::find_directive_struct("RedirectMatch", $vconf);
+	my $webminurl = &get_mailman_webmin_url($d);
 	foreach my $p ("/cgi-bin/mailman", "/mailman") {
-		local ($rm) = grep { $_->{'words'}->[0] =~ /^\Q$p\E/ } @rm;
+		my ($rm) = grep { $_->{'words'}->[0] =~ /^\Q$p\E/ } @rm;
 		if (!$rm) {
 			return &text('validate_eredirect', "<tt>$p</tt>");
 			}
@@ -318,7 +333,7 @@ return undef;
 # the Webmin user when this feature is enabled
 sub feature_webmin
 {
-local @doms = map { $_->{'dom'} } grep { $_->{$module_name} } @{$_[1]};
+my @doms = map { $_->{'dom'} } grep { $_->{$module_name} } @{$_[1]};
 if (@doms) {
 	return ( [ $module_name,
 		   { 'dom' => join(" ", @doms),
@@ -339,7 +354,7 @@ return ( [ $module_name, $text{'feat_module'} ] );
 # Returns HTML for editing limits related to this plugin
 sub feature_limits_input
 {
-local ($d) = @_;
+my ($d) = @_;
 return undef if (!$d->{$module_name});
 return &ui_table_row(&hlink($text{'limits_max'}, "limits_max"),
 	&ui_opt_textbox($input_name."limit", $d->{$module_name."limit"},
@@ -351,7 +366,7 @@ return &ui_table_row(&hlink($text{'limits_max'}, "limits_max"),
 # Updates the domain with limit inputs generated by feature_limits_input
 sub feature_limits_parse
 {
-local ($d, $in) = @_;
+my ($d, $in) = @_;
 return undef if (!$d->{$module_name});
 if ($in->{$input_name."limit_def"}) {
 	delete($d->{$module_name."limit"});
@@ -367,7 +382,7 @@ return undef;
 # Returns an array of link objects for webmin modules for this feature
 sub feature_links
 {
-local ($d) = @_;
+my ($d) = @_;
 return ( { 'mod' => $module_name,
 	   'desc' => $text{'links_link'},
 	   'page' => 'index.cgi?show='.$d->{'dom'},
@@ -379,12 +394,13 @@ return ( { 'mod' => $module_name,
 # Create a tar file of all list directories for this domain
 sub feature_backup
 {
-local ($d, $file, $opts, $allopts) = @_;
-local @lists = grep { $_->{'dom'} eq $d->{'dom'} } &list_lists();
+my ($d, $file, $opts, $allopts) = @_;
+my @lists = grep { $_->{'dom'} eq $d->{'dom'} } &list_lists();
 &$virtual_server::first_print($text{'feat_backup'});
 
 if (!@lists) {
 	# No lists, so we can skip most of this
+	no strict "subs";
 	&virtual_server::open_tempfile_as_domain_user($d, EMPTY, ">$file");
 	&virtual_server::close_tempfile_as_domain_user($d, EMPTY);
 	if ($opts->{'archive'} && -d $archives_dir) {
@@ -395,15 +411,16 @@ if (!@lists) {
 			$d, EMPTY, ">".$file."_public");
 		&virtual_server::close_tempfile_as_domain_user($d, EMPTY);
 		}
+	use strict "subs";
 	&$virtual_server::second_print($text{'feat_nolists'});
 	return 1;
 	}
 
 # Tar up lists directories
-local $tar = defined(&virtual_server::get_tar_command) ?
+my $tar = defined(&virtual_server::get_tar_command) ?
 		&virtual_server::get_tar_command() : "tar";
-local $temp = &transname();
-local $out = &backquote_command(
+my $temp = &transname();
+my $out = &backquote_command(
 	"cd $lists_dir && $tar cf ".quotemeta($temp)." ".
 	join(" ", map { $_->{'list'} } @lists)." 2>&1");
 if ($?) {
@@ -414,7 +431,7 @@ else {
 	# Create file of list names and descriptions
 	&virtual_server::copy_write_as_domain_user($d, $temp, $file);
 	&unlink_file($temp);
-	local %dlists;
+	my %dlists;
 	foreach my $l (@lists) {
 		$dlists{$l->{'list'}} = $l->{'desc'};
 		}
@@ -426,12 +443,12 @@ else {
 	if ($opts->{'archive'} && -d $archives_dir) {
 		# Tar up private dir
 		&$virtual_server::first_print($text{'feat_barchive'});
-		local $anyfiles = 0;
-		local @files = grep { -e "$archives_dir/private/$_" }
+		my $anyfiles = 0;
+		my @files = grep { -e "$archives_dir/private/$_" }
 			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
 		if (@files) {
-			local $temp = &transname();
-			local $out = &backquote_command(
+			my $temp = &transname();
+			my $out = &backquote_command(
 				"cd $archives_dir/private && $tar cf ".
 				quotemeta($temp)." ".
 				join(" ", @files)." 2>&1");
@@ -447,11 +464,11 @@ else {
 			}
 
 		# Tar up public dir
-		local @files = grep { -e "$archives_dir/public/$_" }
+		@files = grep { -e "$archives_dir/public/$_" }
 			map { $_->{'list'}, "$_->{'list'}.mbox" } @lists;
 		if (@files) {
-			local $temp = &transname();
-			local $out = &backquote_command(
+			my $temp = &transname();
+			my $out = &backquote_command(
 				"cd $archives_dir/public && $tar cf ".
 				quotemeta($temp)." ".
 				join(" ", @files)." 2>&1");
@@ -482,11 +499,11 @@ else {
 # Restore the tar file of all list directories for this domain
 sub feature_restore
 {
-local ($d, $file) = @_;
+my ($d, $file) = @_;
 &$virtual_server::first_print($text{'feat_restore'});
 
 # Delete existing lists
-local @lists = grep { $_->{'dom'} eq $d->{'dom'} } &list_lists($d);
+my @lists = grep { $_->{'dom'} eq $d->{'dom'} } &list_lists($d);
 foreach my $l (@lists) {
 	&delete_list($l->{'list'}, $l->{'dom'});
 	}
@@ -506,7 +523,7 @@ if (-r $file."_private") {
 		}
 	}
 
-local @st = stat($file);
+my @st = stat($file);
 if (@st && $st[7] == 0) {
 	# Source had no mailing lists .. so nothing to do
 	&$virtual_server::second_print($text{'feat_nolists2'});
@@ -514,18 +531,18 @@ if (@st && $st[7] == 0) {
 	}
 
 # Extract lists tar file
-local $tar = defined(&virtual_server::get_tar_command) ?
+my $tar = defined(&virtual_server::get_tar_command) ?
 		&virtual_server::get_tar_command() : "tar";
-local $out = &backquote_command("cd $lists_dir && $tar xf ".quotemeta($file)." 2>&1");
+my $out = &backquote_command("cd $lists_dir && $tar xf ".quotemeta($file)." 2>&1");
 if ($?) {
 	&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 	return 0;
 	}
 else {
 	# Re-add domain and descriptions for lists
-	local %dlists;
+	my %dlists;
 	&read_file($file."_lists", \%dlists);
-	local %lists;
+	my %lists;
 	&read_file($lists_file, \%lists);
 	foreach my $l (keys %dlists) {
 		$lists{$l} = $d->{'dom'}."\t".$dlists{$l};
@@ -535,16 +552,16 @@ else {
 	# Re-create aliases
 	if ($config{'mode'} == 1) {
 		&virtual_server::obtain_lock_mail($_[0]);
-		local @virts = &virtual_server::list_virtusers();
+		my @virts = &virtual_server::list_virtusers();
 		foreach my $l (keys %dlists) {
-			local $a;
-			foreach $a (@mailman_aliases) {
-				local $virt = {
+			my $a;
+			foreach my $a (@mailman_aliases) {
+				my $virt = {
 				  'from' => ($a eq "post" ? $l : "$l-$a").
 					    "\@".$d->{'dom'},
 				  'to' => [ "|$mailman_cmd $a $l" ]
 				  };
-				local ($c) = grep { $_->{'from'} eq
+				my ($c) = grep { $_->{'from'} eq
 						    $virt->{'from'} } @virts;
 				if ($c) {
 					&virtual_server::delete_virtuser($c);
@@ -561,14 +578,14 @@ else {
 		&$virtual_server::first_print($text{'feat_rarchive'});
 		}
 	if (-r $file."_public") {
-		local $out = &backquote_command("cd $archives_dir/public && $tar xf ".quotemeta($file."_public")." 2>&1");
+		my $out = &backquote_command("cd $archives_dir/public && $tar xf ".quotemeta($file."_public")." 2>&1");
 		if ($?) {
 			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 			return 0;
 			}
 		}
 	if (-r $file."_private") {
-		local $out = &backquote_command("cd $archives_dir/private && $tar xf ".quotemeta($file."_private")." 2>&1");
+		my $out = &backquote_command("cd $archives_dir/private && $tar xf ".quotemeta($file."_private")." 2>&1");
 		if ($?) {
 			&$virtual_server::second_print(&text('feat_failed', "<pre>$out</pre>"));
 			return 0;
@@ -594,7 +611,7 @@ return $text{'feat_backupname'};
 # Returns HTML for selecting options for a backup of this feature
 sub feature_backup_opts
 {
-local ($opts) = @_;
+my ($opts) = @_;
 if (-d $archives_dir) {
 	return &ui_checkbox("virtualmin_mailman_archive", 1,
 			    $text{'feat_archive'}, $opts->{'archive'});
@@ -608,7 +625,7 @@ else {
 # Return a hash reference of backup options, based on the given HTML inputs
 sub feature_backup_parse
 {
-local ($in) = @_;
+my ($in) = @_;
 if (-d $archives_dir) {
 	return { 'archive' => $in->{'virtualmin_mailman_archive'} };
 	}
@@ -622,9 +639,9 @@ else {
 # mailing lists.
 sub virtusers_ignore
 {
-local ($d) = @_;
+my ($d) = @_;
 return ( ) if ($config{'mode'} == 0);
-local @rv;
+my @rv;
 foreach my $l (&list_lists()) {
 	if ($d && $l->{'dom'} eq $d->{'dom'} ||
 	    !$d && $l->{'dom'}) {
@@ -645,8 +662,8 @@ return @rv;
 # Returns HTML for editing per-template options for this plugin
 sub template_input
 {
-local ($tmpl) = @_;
-local $v = $tmpl->{$module_name."limit"};
+my ($tmpl) = @_;
+my $v = $tmpl->{$module_name."limit"};
 $v = "none" if (!defined($v) && $tmpl->{'default'});
 return &ui_table_row($text{'tmpl_limit'},
 	&ui_radio($input_name."_mode",
@@ -662,7 +679,7 @@ return &ui_table_row($text{'tmpl_limit'},
 # template_input. All template fields must start with the module name.
 sub template_parse
 {
-local ($tmpl, $in) = @_;
+my ($tmpl, $in) = @_;
 if ($in->{$input_name.'_mode'} == 0) {
 	$tmpl->{$module_name."limit"} = "";
 	}
@@ -682,18 +699,18 @@ sub setup_mailman_web_redirects
 &$virtual_server::first_print($text{'setup_alias'});
 &virtual_server::require_apache();
 &virtual_server::obtain_lock_web($_[0]);
-local $conf = &apache::get_config();
-local @ports = ( $_[0]->{'web_port'},
+my $conf = &apache::get_config();
+my @ports = ( $_[0]->{'web_port'},
 		 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
-local $added;
+my $added;
 foreach my $p (@ports) {
-	local ($virt, $vconf) = &virtual_server::get_apache_virtual(
+	my ($virt, $vconf) = &virtual_server::get_apache_virtual(
 		$_[0]->{'dom'}, $p);
 	next if (!$virt);
 
 	# Add lists.$domain alias, if in special Postfix mode
 	if ($config{'mode'} == 0) {
-		local @sa = &apache::find_directive("ServerAlias",
+		my @sa = &apache::find_directive("ServerAlias",
 						    $vconf);
 		push(@sa, "lists.$_[0]->{'dom'}");
 		&apache::save_directive("ServerAlias",
@@ -701,10 +718,10 @@ foreach my $p (@ports) {
 		}
 
 	# Add wrapper redirects
-	local @rm = &apache::find_directive("RedirectMatch", $vconf);
-	local $webminurl = &get_mailman_webmin_url($_[0]);
+	my @rm = &apache::find_directive("RedirectMatch", $vconf);
+	my $webminurl = &get_mailman_webmin_url($_[0]);
 	foreach my $p ("/cgi-bin/mailman", "/mailman") {
-		local ($already) = grep { /^\Q$p\E\// } @rm;
+		my ($already) = grep { /^\Q$p\E\// } @rm;
 		if (!$already) {
 			push(@rm, "$p/([^/\\.]*)(.cgi)?(.*) ".
 				  "$webminurl/$module_name/".
@@ -715,8 +732,8 @@ foreach my $p (@ports) {
 	$added++;
 
 	# Add alias from /pipermail to archives directory
-	local @al = &apache::find_directive("Alias", $vconf);
-	local ($already) = grep { /^\/pipermail\s/ } @al;
+	my @al = &apache::find_directive("Alias", $vconf);
+	my ($already) = grep { /^\/pipermail\s/ } @al;
 	if (!$already) {
 		push(@al, "/pipermail $archives_dir/public");
 		&apache::save_directive("Alias", \@al, $vconf, $conf);
@@ -764,4 +781,3 @@ if ($auser && @st) {
 }
 
 1;
-

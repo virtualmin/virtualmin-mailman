@@ -1,18 +1,22 @@
 #!/usr/local/bin/perl
 # Show members of some mailing list, with form to add
+use strict;
+use warnings;
+our (%text, %in);
 
 require './virtualmin-mailman-lib.pl';
 &ReadParse();
-@lists = &list_lists();
-($list) = grep { $_->{'list'} eq $in{'list'} } @lists;
+my @lists = &list_lists();
+my ($list) = grep { $_->{'list'} eq $in{'list'} } @lists;
 &can_edit_list($list) || &error($text{'mems_ecannot'});
 
-$desc = &text('mems_sub', $in{'list'});
+my $desc = &text('mems_sub', $in{'list'});
 &ui_print_header($desc, $text{'mems_title'}, "");
 
 # Build data for members table
-@mems = &list_members($list);
-foreach $m (@mems) {
+my @mems = &list_members($list);
+my @table;
+foreach my $m (@mems) {
 	push(@table, [
 		$m->{'email'},
 		$m->{'digest'} eq 'y' ? $text{'mems_digesty'}
@@ -35,7 +39,7 @@ print &ui_form_columns_table(
 	\@table,
 	undef, 0, undef,
 	$text{'mems_none'});
-	
+
 # Show form to add a new member
 print &ui_form_start("add_member.cgi", "post");
 print &ui_hidden("list", $in{'list'}),"\n";

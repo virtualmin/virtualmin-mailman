@@ -1,12 +1,15 @@
 #!/usr/local/bin/perl
 # Remove one mailing list
+use strict;
+use warnings;
+our (%text, %in, %config);
 
 require './virtualmin-mailman-lib.pl';
 &ReadParse();
 &error_setup($text{'delete_err'});
 
-@lists = &list_lists();
-($listname) = grep { $_ ne "confirm" && $_ ne "show" } keys %in;
+my @lists = &list_lists();
+my ($listname) = grep { $_ ne "confirm" && $_ ne "show" } keys %in;
 
 if ($listname =~ /^mems_(\S+)$/) {
 	# Actually editing members .. redirect
@@ -17,8 +20,8 @@ elsif ($listname =~ /^man_(\S+)$/) {
 	# Actually managing list .. redirect
 	if ($config{'manage_url'}) {
 		# Custom URL
-		($list) = grep { $_->{'list'} eq $1 } @lists;
-		$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
+		my ($list) = grep { $_->{'list'} eq $1 } @lists;
+		my $d = &virtual_server::get_domain_by("dom", $list->{'dom'});
 		&redirect(&virtual_server::substitute_domain_template(
 				$config{'manage_url'}, $d));
 		}
@@ -36,9 +39,9 @@ elsif ($listname =~ /^reset_(\S+)$/) {
 
 # Get the list
 $listname eq "mailman" && &error($text{'delete_emailman'});
-($list) = grep { $_->{'list'} eq $listname } @lists;
+my ($list) = grep { $_->{'list'} eq $listname } @lists;
 &can_edit_list($list) || &error($text{'delete_ecannot'});
-$d = &virtual_server::get_domain_by("dom", $list->{'dom'});
+my $d = &virtual_server::get_domain_by("dom", $list->{'dom'});
 $d || &error($text{'delete_edon'});
 
 if (!$in{'confirm'}) {
@@ -53,9 +56,8 @@ if (!$in{'confirm'}) {
 	}
 else {
 	# Do it
-	$err = &delete_list($listname, $list->{'dom'});
+	my $err = &delete_list($listname, $list->{'dom'});
 	&error($err) if ($err);
 
 	&redirect("");
 	}
-

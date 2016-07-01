@@ -1,37 +1,43 @@
 #!/usr/local/bin/perl
 # Show all mailman lists that this user can manage
+use strict;
+use warnings;
+our (%access, %text, %in);
+our $module_name;
+our $changepw_cmd;
+our $current_lang; # from web-lib-funcs.pl
 
 require './virtualmin-mailman-lib.pl';
 &ReadParse();
 
-$ver = &get_mailman_version();
-$desc = $in{'show'} ? &virtual_server::text('indom', $in{'show'}) : undef;
+my $ver = &get_mailman_version();
+my $desc = $in{'show'} ? &virtual_server::text('indom', $in{'show'}) : undef;
 &ui_print_header($desc, $text{'index_title'}, "", undef, 1, 1, 0,
 		 undef, undef, undef,
 		 $ver ? &text('index_version', $ver) : undef);
-$err = &mailman_check();
+my $err = &mailman_check();
 if ($err) {
 	&ui_print_endpage($err);
 	}
 
 # Build contents for lists table
-@alllists = &list_lists();
-@lists = grep { &can_edit_list($_) } @alllists;
+my @alllists = &list_lists();
+my @lists = grep { &can_edit_list($_) } @alllists;
 if ($in{'show'}) {
 	# Only show specified lists
 	@lists = grep { $_->{'dom'} eq $in{'show'} } @lists;
 	}
-@table = ( );
-foreach $l (@lists) {
+my @table;
+foreach my $l (@lists) {
 	# Check if we can link to the list info page
-	local $infourl;
+	my $infourl;
 	if ($l->{'dom'}) {
-		$d = &virtual_server::get_domain_by("dom", $l->{'dom'});
+		my $d = &virtual_server::get_domain_by("dom", $l->{'dom'});
 		if ($d && $d->{'web'}) {
-			local ($virt, $vconf) =
+			my ($virt, $vconf) =
 				&virtual_server::get_apache_virtual(
 				$d->{'dom'}, $d->{'web_port'});
-			local @rm = grep { /^\/mailman\// }
+			my @rm = grep { /^\/mailman\// }
 				&apache::find_directive("RedirectMatch",
 							$vconf);
 			if (@rm) {
@@ -51,7 +57,7 @@ foreach $l (@lists) {
 		       $l->{'list'} eq 'mailman')." ".
 	    &ui_submit($text{'index_mems'}, "mems_".$l->{'list'})." ".
 	    &ui_submit($text{'index_man'}, "man_".$l->{'list'})." ".
-	    (-x $changepw_cmd ? 
+	    (-x $changepw_cmd ?
 	      &ui_submit($text{'index_reset'}, "reset_".$l->{'list'}) :
 	      "")
 	    ]);
@@ -93,7 +99,7 @@ else {
 			&ui_select("dom", $in{'show'},
 				[ map { [ $_->{'dom'} ] }
 				   sort { $a->{'dom'} cmp $b->{'dom'} }
-				    grep { $_->{$module_name} } 
+				    grep { $_->{$module_name} }
 				      &virtual_server::list_domains() ]));
 		}
 	else {
@@ -113,7 +119,7 @@ else {
 	print &ui_table_row($text{'index_email'},
 		    &ui_opt_textbox("email", undef, 30, $text{'index_fv'}), 1);
 
-	$dom = $in{'show'} ? &virtual_server::get_domain_by("dom", $in{'show'})
+	my $dom = $in{'show'} ? &virtual_server::get_domain_by("dom", $in{'show'})
 			   : undef;
 	if ($dom && !$dom->{'pass'}) {
 		print &ui_table_row($text{'index_pass'},
@@ -143,7 +149,7 @@ if (&virtual_server::master_admin() && &needs_mailman_list()) {
 	print &ui_table_row($text{'index_pass'},
 		    &ui_textbox("pass", undef, 30));
 
-	@doms = grep { $_->{'mail'} } &virtual_server::list_domains();
+	my @doms = grep { $_->{'mail'} } &virtual_server::list_domains();
 	if (@doms) {
 		print &ui_table_row($text{'index_dom2'},
 		    &ui_select("dom", undef,
@@ -182,6 +188,7 @@ print &ui_submit($text{'index_search'});
 print &ui_form_end();
 
 # Show button to correct redirects if needed
+my @urldoms;
 foreach my $d (grep { &virtual_server::can_edit_domain($_) &&
 		      $_->{$module_name} } &virtual_server::list_domains()) {
 	if (!&check_webmin_mailman_urls($d)) {
@@ -189,7 +196,7 @@ foreach my $d (grep { &virtual_server::can_edit_domain($_) &&
 		}
 	}
 if (@urldoms) {
-	@hiddens = map { &ui_hidden("d", $_->{'id'}) } @urldoms;
+	my @hiddens = map { &ui_hidden("d", $_->{'id'}) } @urldoms;
 	print &ui_hr();
 	print &ui_buttons_start();
 	print &ui_buttons_row("fixurls.cgi", $text{'index_fixurls'},
@@ -200,4 +207,3 @@ if (@urldoms) {
 	}
 
 &ui_print_footer("/", $text{'index'});
-
