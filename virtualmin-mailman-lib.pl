@@ -407,12 +407,19 @@ elsif (!$old && defined($value)) {
 &flush_file_lines($mailman_config);
 }
 
-# get_list_config(list)
-# Returns the configuration for some list as a hash reference
+# get_list_config(list, [name])
+# Returns the configuration for some list as a hash reference, or a single
+# config option if 'name' is given
 sub get_list_config
 {
+my ($list, $name) = @_;
+if ($name) {
+	my $c = &get_list_config($list);
+	return $c->{$name};
+	}
 my $temp = &transname();
-&execute_command("$config_cmd -o $temp $_[0]");
+&execute_command("$config_cmd -o ".quotemeta($temp)." ".
+		 quotemeta($list));
 my %rv;
 open(my $CONFIG, "<", $temp);
 while(<$CONFIG>) {
@@ -510,37 +517,6 @@ my @tm = gmtime($_[0]);
 return sprintf "%s, %d %s %d %2.2d:%2.2d:%2.2d GMT",
 		$weekday[$tm[6]], $tm[3], $month[$tm[4]], $tm[5]+1900,
 		$tm[2], $tm[1], $tm[0];
-}
-
-# get_list_config(list, [value])
-# Returns either a hash ref of all list configuration values (in Python format),
-# or a single value
-sub get_list_config
-{
-my ($list, $name) = @_;
-if ($name) {
-	my $c = &get_list_config($list);
-	return $c->{$name};
-	}
-else {
-	my $temp = &transname();
-	my %rv;
-	&execute_command("$config_cmd -o ".quotemeta($temp).
-			 " ".quotemeta($list));
-  no strict "subs";
-	&open_readfile(CONFIGLIST, $temp);
-	while(<CONFIGLIST>) {
-		s/\r|\n//g;
-		s/^\s*#.*$//;
-		if (/^\s*(\S+)\s*=\s*(.*)/) {
-			$rv{$1} = $2;
-			}
-		}
-	close(CONFIGLIST);
-  use strict "subs";
-	&unlink_file($temp);
-	return \%rv;
-	}
 }
 
 # save_list_config(list, name, value)
