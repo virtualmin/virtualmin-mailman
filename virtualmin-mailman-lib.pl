@@ -69,6 +69,7 @@ opendir(DIR, $lists_dir);
 my $f;
 while($f = readdir(DIR)) {
 	next if ($f eq "." || $f eq "..");
+	next if (!$lists{$f});
 	my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
 	if (!$desc && $f eq 'mailman') {
 		$desc = $text{'feat_adminlist'};
