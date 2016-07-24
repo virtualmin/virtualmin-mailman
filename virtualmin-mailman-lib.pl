@@ -49,10 +49,12 @@ our %access = &get_module_acl();
 
 our $lists_file = "$module_config_directory/list-domains";
 
+# get_mailman_version()
+# Returns the mailman version number (as a float)
 sub get_mailman_version
 {
 my $out = `$mailman_dir/bin/version 2>/dev/null </dev/null`;
-if ($out =~ /version\s+(\S+)/i || $out =~ /version:\s+(\S+)/i) {
+if ($out =~ /version\s+(\d+(\.\d+)?)/i || $out =~ /version:\s+(\d+(\.\d+)?)/i) {
 	return $1;
 	}
 return undef;
