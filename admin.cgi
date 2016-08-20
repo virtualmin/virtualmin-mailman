@@ -85,8 +85,8 @@ close($TEMP);
 my $cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
 my $textarea = 0;
 my ($headers, $body);
-open(my $CGI, "<", "$cmd <$temp |");
-while(<CGI>) {
+open(my $CGI, "$cmd <$temp |");
+while(<$CGI>) {
 	# Check if we are in a textarea
 	if (/<textarea/i) { $textarea = 1; }
 	if (/<\/textarea/i) { $textarea = 0; }
@@ -117,7 +117,7 @@ while(<CGI>) {
 		$body .= $_;
 		}
 	}
-close(CGI);
+close($CGI);
 
 print $headers;
 my $title;
