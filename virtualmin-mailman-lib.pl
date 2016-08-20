@@ -175,7 +175,7 @@ if ($?) {
 if ($dom) {
 	# Save domain and description
 	&lock_file($lists_file);
-  my %lists;
+	my %lists;
 	&read_file($lists_file, \%lists);
 	$lists{$full_list} = $dom."\t".$desc;
 	&write_file($lists_file, \%lists);
@@ -257,13 +257,13 @@ if ($config{'mode'} == 1) {
 sub list_members
 {
 my @rv;
-open(my $MEMS, "<", "$mailman_dir/bin/list_members -r $_[0]->{'list'} |");
+open(my $MEMS, "$mailman_dir/bin/list_members -r $_[0]->{'list'} |");
 while(<$MEMS>) {
 	s/\r|\n//g;
 	push(@rv, { 'email' => $_, 'digest' => 'n' });
 	}
 close($MEMS);
-open($MEMS, "<", "$mailman_dir/bin/list_members -d $_[0]->{'list'} |");
+open($MEMS, "$mailman_dir/bin/list_members -d $_[0]->{'list'} |");
 while(<$MEMS>) {
 	s/\r|\n//g;
 	push(@rv, { 'email' => $_, 'digest' => 'y' });
@@ -334,7 +334,7 @@ sub get_mailman_config
 {
 if (!scalar(@mailman_config_cache)) {
 	my $lnum = 0;
-	open(my $CONF, "<", "$mailman_config");
+	open(my $CONF, "<", $mailman_config);
 	while(<$CONF>) {
 		s/\r|\n//g;
 		s/^\s*#.*$//;
