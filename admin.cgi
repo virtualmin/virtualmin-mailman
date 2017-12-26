@@ -70,16 +70,14 @@ my @realhosts = ( &get_system_hostname(),
 
 # Read posted data
 my $temp = &transname();
-open(my $TEMP, ">", "$temp");
+open(my $TEMP, ">", $temp);
 my $qs;
-if (defined(&read_fully)) {
-	&read_fully($STDIN, \$qs, $ENV{'CONTENT_LENGTH'});
-	}
-else {
-	read(STDIN, $qs, $ENV{'CONTENT_LENGTH'});
-	}
+&read_fully($STDIN, \$qs, $ENV{'CONTENT_LENGTH'});
 print $TEMP $qs;
 close($TEMP);
+if ($ENV{'REQUEST_METHOD'} eq 'POST') {
+	$ENV{'CONTENT_TYPE'} = 'application/x-www-form-urlencoded';
+	}
 
 # Run the real command, and fix up output
 my $cmd = &command_as_user($cgiuser, 0, "$mailman_dir/cgi-bin/$prog");
