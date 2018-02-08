@@ -25,6 +25,7 @@ our $mailman_dir = $config{'mailman_dir'} || "/usr/local/mailman";
 our $mailman_var = $config{'mailman_var'} || $mailman_dir;
 our $newlist_cmd = "$mailman_dir/bin/newlist";
 our $rmlist_cmd = "$mailman_dir/bin/rmlist";
+our $list_lists_cmd = "$mailman_dir/bin/list_lists";
 our $mailman_cmd = $config{'mailman_cmd'} || "$mailman_dir/bin/mailman";
 if (!-x $mailman_cmd && $config{'alt_mailman_cmd'}) {
 	# Hack needed to handle CentOS 4
@@ -82,6 +83,15 @@ while($f = readdir(DIR)) {
 	}
 closedir(DIR);
 return @rv;
+}
+
+# list_real_lists()
+# Returns a list of the names of actual lists that exist in the Mailman config
+sub list_real_lists
+{
+my $out = &backquote_command("$list_lists_cmd -b 2>/dev/null </dev/null");
+return ( ) if ($?);
+return split(/\r?\n/, $out);
 }
 
 # can_edit_list(&list)
@@ -500,7 +510,12 @@ if ($ver < 2.1) {
 my @lists = &list_lists();
 my ($mailman) = grep { $_->{'list'} eq 'mailman' } @lists;
 if ($mailman) {
-	# Already exists
+	# Already exists and is known to Virtualmin
+	return 0;
+	}
+my @real = &list_real_lists();
+if (&indexof('mailman', @real) >= 0) {
+	# Already exists, although not registered in Virtualmin
 	return 0;
 	}
 &foreign_require("init", "init-lib.pl");
