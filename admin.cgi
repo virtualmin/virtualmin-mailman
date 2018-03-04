@@ -75,7 +75,7 @@ my $qs;
 &read_fully($STDIN, \$qs, $ENV{'CONTENT_LENGTH'});
 print $TEMP $qs;
 close($TEMP);
-if ($ENV{'REQUEST_METHOD'} eq 'POST') {
+if ($ENV{'REQUEST_METHOD'} eq 'POST' && $ENV{'CONTENT_TYPE'} !~ /boundary=/) {
 	$ENV{'CONTENT_TYPE'} = 'application/x-www-form-urlencoded';
 	}
 
