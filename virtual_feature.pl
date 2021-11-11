@@ -710,8 +710,7 @@ foreach my $p (@ports) {
 
 	# Add lists.$domain alias, if in special Postfix mode
 	if ($config{'mode'} == 0) {
-		my @sa = &apache::find_directive("ServerAlias",
-						    $vconf);
+		my @sa = &apache::find_directive("ServerAlias", $vconf);
 		push(@sa, "lists.$_[0]->{'dom'}");
 		&apache::save_directive("ServerAlias",
 					\@sa, $vconf, $conf);
@@ -778,6 +777,15 @@ if ($auser && @st) {
 		}
 	&virtual_server::release_lock_unix($_[0]);
 	}
+}
+
+# feature_reset(&domain)
+# Delete and re-create, but keep lists
+sub feature_reset
+{
+my ($d) = @_;
+&feature_delete($d, 1);
+&feature_setup($d);
 }
 
 1;
