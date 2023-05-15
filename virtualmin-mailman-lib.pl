@@ -23,14 +23,18 @@ our @mailman_aliases = ( "post", "admin", "bounces", "confirm", "join",
 
 our $mailman_dir = $config{'mailman_dir'} || "/usr/local/mailman";
 our $mailman_var = $config{'mailman_var'} || $mailman_dir;
-our $newlist_cmd = "$mailman_dir/bin/newlist";
-our $rmlist_cmd = "$mailman_dir/bin/rmlist";
-our $list_lists_cmd = "$mailman_dir/bin/list_lists";
 our $mailman_cmd = $config{'mailman_cmd'} || "$mailman_dir/bin/mailman";
 if (!-x $mailman_cmd && $config{'alt_mailman_cmd'}) {
 	# Hack needed to handle CentOS 4
 	$mailman_cmd = $config{'alt_mailman_cmd'};
 	}
+
+our $list_members_cmd = "$mailman_dir/bin/list_members";
+our $add_members_cmd = "$mailman_dir/bin/add_members";
+our $remove_members_cmd = "$mailman_dir/bin/remove_members";
+our $newlist_cmd = "$mailman_dir/bin/newlist";
+our $rmlist_cmd = "$mailman_dir/bin/rmlist";
+our $list_lists_cmd = "$mailman_dir/bin/list_lists";
 our $changepw_cmd = "$mailman_dir/bin/change_pw";
 our $config_cmd = "$mailman_dir/bin/config_list";
 our $withlist_cmd = "$mailman_dir/bin/withlist";
@@ -54,8 +58,14 @@ our $lists_file = "$module_config_directory/list-domains";
 # Returns the mailman version number (as a float)
 sub get_mailman_version
 {
-my $out = `$mailman_dir/bin/version 2>/dev/null </dev/null`;
-if ($out =~ /version\s+(\d+(\.\d+)?)/i || $out =~ /version:\s+(\d+(\.\d+)?)/i) {
+my $vcmd = "$mailman_dir/bin/version";
+if (!-x $vcmd) {
+	$vcmd = "$mailman_cmd version";
+	}
+my $out = &backquote_command("$vcmd 2>/dev/null </dev/null");
+if ($out =~ /version\s+(\d+(\.\d+)?)/i ||
+    $out =~ /version:\s+(\d+(\.\d+)?)/i ||
+    $out =~ /GNU\s+mailman\s+(\d+(\.\d+)?)/i) {
 	return $1;
 	}
 return undef;
@@ -266,14 +276,15 @@ if ($config{'mode'} == 1) {
 # Returns an array of user structures for some list
 sub list_members
 {
+my ($list) = @_;
 my @rv;
-open(my $MEMS, "$mailman_dir/bin/list_members -r $_[0]->{'list'} |");
+open(my $MEMS, "$list_members_cmd -r ".quotemeta($list->{'list'})." |");
 while(<$MEMS>) {
 	s/\r|\n//g;
 	push(@rv, { 'email' => $_, 'digest' => 'n' });
 	}
 close($MEMS);
-open($MEMS, "$mailman_dir/bin/list_members -d $_[0]->{'list'} |");
+open($MEMS, "$list_members_cmd -d ".quotemeta($list->{'list'})." |");
 while(<$MEMS>) {
 	s/\r|\n//g;
 	push(@rv, { 'email' => $_, 'digest' => 'y' });
@@ -286,23 +297,24 @@ return sort { $a->{'email'} cmp $b->{'email'} } @rv;
 # Add one subscriber to a list
 sub add_member
 {
+my ($mem, $list) = @_;
 my $temp = &transname();
-my $cmd = "$mailman_dir/bin/add_members";
+my $cmd = $add_members_cmd;
 if ($_[0]->{'digest'} eq 'y') {
 	$cmd .= " -d $temp";
 	}
 else {
 	$cmd .= " -r $temp";
 	}
-if ($_[0]->{'welcome'}) {
-	$cmd .= " -w ".$_[0]->{'welcome'};
+if ($mem->{'welcome'}) {
+	$cmd .= " -w ".quotemeta($mem->{'welcome'});
 	}
-if ($_[0]->{'admin'}) {
-	$cmd .= " -a ".$_[0]->{'admin'};
+if ($mem->{'admin'}) {
+	$cmd .= " -a ".quotemeta($mem->{'admin'});
 	}
-$cmd .= " $_[1]->{'list'}";
+$cmd .= " ".quotemeta($list->{'list'});
 open(my $TEMP, ">", "$temp");
-print $TEMP "$_[0]->{'email'}\n";
+print $TEMP $mem->{'email'},"\n";
 close($TEMP);
 my $out = &backquote_logged("$cmd <$temp 2>&1");
 return $? ? $out : undef;
@@ -312,10 +324,12 @@ return $? ? $out : undef;
 # Deletes one person from a mailing list
 sub remove_member
 {
+my ($mem, $list) = @_;
 my $temp = &transname();
-my $cmd = "$mailman_dir/bin/remove_members -f $temp $_[1]->{'list'}";
+my $cmd = "$remove_members_cmd -f ".quotemeta($temp).
+	  " ".quotemeta($list->{'list'});
 open(my $TEMP, ">", "$temp");
-print $TEMP "$_[0]->{'email'}\n";
+print $TEMP "$mem->{'email'}\n";
 close($TEMP);
 my $out = &backquote_logged("$cmd <$temp 2>&1");
 return $? ? $out : undef;
