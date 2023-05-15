@@ -54,10 +54,15 @@ our %access = &get_module_acl();
 
 our $lists_file = "$module_config_directory/list-domains";
 
+our $get_mailman_version_cache;
+
 # get_mailman_version()
 # Returns the mailman version number (as a float)
 sub get_mailman_version
 {
+if ($get_mailman_version_cache) {
+	return $get_mailman_version_cache;
+	}
 my $vcmd = "$mailman_dir/bin/version";
 if (!-x $vcmd) {
 	$vcmd = "$mailman_cmd version";
@@ -66,9 +71,9 @@ my $out = &backquote_command("$vcmd 2>/dev/null </dev/null");
 if ($out =~ /version\s+(\d+(\.\d+)?)/i ||
     $out =~ /version:\s+(\d+(\.\d+)?)/i ||
     $out =~ /GNU\s+mailman\s+(\d+(\.\d+)?)/i) {
-	return $1;
+	$get_mailman_version_cache = $1;
 	}
-return undef;
+return $get_mailman_version_cache;
 }
 
 # list_lists()
@@ -79,9 +84,10 @@ my @rv;
 my %lists;
 &read_file($lists_file, \%lists);
 opendir(DIR, $lists_dir);
-my $f;
+my ($f, $fdom);
 while($f = readdir(DIR)) {
 	next if ($f eq "." || $f eq "..");
+	($f, $fdom) = split(/\./, $f, 2);
 	next if (!$lists{$f});
 	my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
 	if (!$desc && $f eq 'mailman') {
@@ -89,6 +95,7 @@ while($f = readdir(DIR)) {
 		}
 	push(@rv, { 'list' => $f,
 		    'dom' => $dom,
+		    'full' => $dom ? $f."\@".$dom : $f,
 		    'desc' => $desc });
 	}
 closedir(DIR);
@@ -99,9 +106,18 @@ return @rv;
 # Returns a list of the names of actual lists that exist in the Mailman config
 sub list_real_lists
 {
-my $out = &backquote_command("$list_lists_cmd -b 2>/dev/null </dev/null");
-return ( ) if ($?);
-return split(/\r?\n/, $out);
+if (&get_mailman_version() >= 3) {
+	my $out = &backquote_command(
+		"$mailman_cmd lists 2>/dev/null </dev/null");
+	return ( ) if ($?);
+	return split(/\r?\n/, $out);
+	}
+else {
+	my $out = &backquote_command(
+		"$list_lists_cmd -b 2>/dev/null </dev/null");
+	return ( ) if ($?);
+	return split(/\r?\n/, $out);
+	}
 }
 
 # can_edit_list(&list)
@@ -118,7 +134,7 @@ sub mailman_check
 return &text('feat_emailmancmd', "<tt>$mailman_cmd</tt>")
 	if (!&has_command($mailman_cmd));
 return &text('feat_emailman', "<tt>$mailman_dir</tt>")
-	if (!-d $mailman_dir || !-d "$mailman_dir/bin");
+	if (!-d $mailman_dir);
 return &text('feat_emailman2', "<tt>$mailman_var</tt>")
 	if (!-d $mailman_var || !-d "$mailman_var/lists");
 if ($config{'mode'} == 0) {
@@ -168,24 +184,44 @@ foreach my $c ("DEFAULT_URL_HOST", "DEFAULT_EMAIL_HOST") {
 	}
 
 # Construct and call the list creation command
-my @args = ( $newlist_cmd );
-if ($lang) {
-	push(@args, "-l", $lang);
-	}
-if (&get_mailman_version() < 2.1) {
-	push(@args, $full_list);
-	}
-elsif (!$dom) {
-	push(@args, $full_list);
-	}
-elsif ($config{'mode'} == 0) {
-	push(@args, "$full_list\@lists.$dom");
+my @args;
+if (&get_mailman_version() >= 3) {
+	@args = ( $mailman_cmd, "create" );
+	if ($lang) {
+		push(@args, "--language", $lang);
+		}
+	push(@args, "--owner", $email);
+	push(@args, "-d");
+	if (!$dom) {
+		push(@args, $full_list);
+		}
+	elsif ($config{'mode'} == 0) {
+		push(@args, "$full_list\@lists.$dom");
+		}
+	else {
+		push(@args, "$full_list\@$dom");
+		}
 	}
 else {
-	push(@args, "$full_list\@$dom");
+	@args = ( $newlist_cmd );
+	if ($lang) {
+		push(@args, "-l", $lang);
+		}
+	if (&get_mailman_version() < 2.1) {
+		push(@args, $full_list);
+		}
+	elsif (!$dom) {
+		push(@args, $full_list);
+		}
+	elsif ($config{'mode'} == 0) {
+		push(@args, "$full_list\@lists.$dom");
+		}
+	else {
+		push(@args, "$full_list\@$dom");
+		}
+	push(@args, $email);
+	push(@args, $pass);
 	}
-push(@args, $email);
-push(@args, $pass);
 my $cmd = join(" ", map { $_ eq '' ? '""' : quotemeta($_) } @args);
 my $out = &backquote_logged("$cmd 2>&1 </dev/null");
 if ($?) {
@@ -232,9 +268,24 @@ my $short_list = $list;
 $short_list =~ s/\_\Q$dom\E$//;
 
 # Run the remove command
-my $out = &backquote_logged("$rmlist_cmd -a $list 2>&1 </dev/null");
-if ($?) {
-	return "<pre>$out</pre>";
+if (&get_mailman_version() >= 3) {
+	my $cmd = "$mailman_cmd remove";
+	if ($dom) {
+		$cmd .= " ".$list."\@".$dom;
+		}
+	else {
+		$cmd .= " ".$list;
+		}
+	my $out = &backquote_logged("$cmd 2>&1 </dev/null");
+	if ($?) {
+		return "<pre>$out</pre>";
+		}
+	}
+else {
+	my $out = &backquote_logged("$rmlist_cmd -a $list 2>&1 </dev/null");
+	if ($?) {
+		return "<pre>$out</pre>";
+		}
 	}
 
 # Delete from domain map
@@ -278,18 +329,35 @@ sub list_members
 {
 my ($list) = @_;
 my @rv;
-open(my $MEMS, "$list_members_cmd -r ".quotemeta($list->{'list'})." |");
-while(<$MEMS>) {
-	s/\r|\n//g;
-	push(@rv, { 'email' => $_, 'digest' => 'n' });
+if (&get_mailman_version() >= 3) {
+	my $ld = $list->{'full'};
+	open(my $MEMS, "$mailman_cmd members -r ".quotemeta($ld)." |");
+	while(<$MEMS>) {
+		s/\r|\n//g;
+		push(@rv, { 'email' => $_, 'digest' => 'n' }) if (/\S+\@\S+/);
+		}
+	close($MEMS);
+	open(my $MEMS, "$mailman_cmd members -d any ".quotemeta($ld)." |");
+	while(<$MEMS>) {
+		s/\r|\n//g;
+		push(@rv, { 'email' => $_, 'digest' => 'y' }) if (/\S+\@\S+/);
+		}
+	close($MEMS);
 	}
-close($MEMS);
-open($MEMS, "$list_members_cmd -d ".quotemeta($list->{'list'})." |");
-while(<$MEMS>) {
-	s/\r|\n//g;
-	push(@rv, { 'email' => $_, 'digest' => 'y' });
+else {
+	open(my $MEMS, "$list_members_cmd -r ".quotemeta($list->{'list'})." |");
+	while(<$MEMS>) {
+		s/\r|\n//g;
+		push(@rv, { 'email' => $_, 'digest' => 'n' });
+		}
+	close($MEMS);
+	open($MEMS, "$list_members_cmd -d ".quotemeta($list->{'list'})." |");
+	while(<$MEMS>) {
+		s/\r|\n//g;
+		push(@rv, { 'email' => $_, 'digest' => 'y' });
+		}
+	close($MEMS);
 	}
-close($MEMS);
 return sort { $a->{'email'} cmp $b->{'email'} } @rv;
 }
 
@@ -299,25 +367,45 @@ sub add_member
 {
 my ($mem, $list) = @_;
 my $temp = &transname();
-my $cmd = $add_members_cmd;
-if ($_[0]->{'digest'} eq 'y') {
-	$cmd .= " -d $temp";
-	}
-else {
-	$cmd .= " -r $temp";
-	}
-if ($mem->{'welcome'}) {
-	$cmd .= " -w ".quotemeta($mem->{'welcome'});
-	}
-if ($mem->{'admin'}) {
-	$cmd .= " -a ".quotemeta($mem->{'admin'});
-	}
-$cmd .= " ".quotemeta($list->{'list'});
 open(my $TEMP, ">", "$temp");
 print $TEMP $mem->{'email'},"\n";
 close($TEMP);
-my $out = &backquote_logged("$cmd <$temp 2>&1");
-return $? ? $out : undef;
+if (&get_mailman_version() >= 3) {
+	my $cmd = $mailman_cmd." addmembers";
+	if ($mem->{'digest'} eq 'y') {
+		$cmd .= " -d summary";
+		}
+	else {
+		$cmd .= " -d regular";
+		}
+	if ($mem->{'welcome'} eq 'y') {
+		$cmd .= " -w";
+		}
+	elsif ($mem->{'welcome'} eq 'n') {
+		$cmd .= " -W";
+		}
+	$cmd .= " - ".quotemeta($list->{'full'});
+	my $out = &backquote_logged("$cmd <$temp 2>&1");
+	return $? ? $out : undef;
+	}
+else {
+	my $cmd = $add_members_cmd;
+	if ($mem->{'digest'} eq 'y') {
+		$cmd .= " -d $temp";
+		}
+	else {
+		$cmd .= " -r $temp";
+		}
+	if ($mem->{'welcome'} eq 'y') {
+		$cmd .= " -w ".quotemeta($mem->{'welcome'});
+		}
+	if ($mem->{'admin'}) {
+		$cmd .= " -a ".quotemeta($mem->{'admin'});
+		}
+	$cmd .= " ".quotemeta($list->{'list'});
+	my $out = &backquote_logged("$cmd <$temp 2>&1");
+	return $? ? $out : undef;
+	}
 }
 
 # remove_member(&member, &list)
@@ -326,13 +414,21 @@ sub remove_member
 {
 my ($mem, $list) = @_;
 my $temp = &transname();
-my $cmd = "$remove_members_cmd -f ".quotemeta($temp).
-	  " ".quotemeta($list->{'list'});
 open(my $TEMP, ">", "$temp");
 print $TEMP "$mem->{'email'}\n";
 close($TEMP);
-my $out = &backquote_logged("$cmd <$temp 2>&1");
-return $? ? $out : undef;
+if (&get_mailman_version() >= 3) {
+	my $cmd = "$mailman_cmd delmembers -f ".quotemeta($temp).
+		  " -l ".quotemeta($list->{'full'});
+	my $out = &backquote_logged("$cmd <$temp 2>&1");
+	return $? ? $out : undef;
+	}
+else {
+	my $cmd = "$remove_members_cmd -f ".quotemeta($temp).
+		  " ".quotemeta($list->{'list'});
+	my $out = &backquote_logged("$cmd <$temp 2>&1");
+	return $? ? $out : undef;
+	}
 }
 
 # list_mailman_languages()
