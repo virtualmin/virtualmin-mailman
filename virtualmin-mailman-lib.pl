@@ -483,7 +483,6 @@ else {
 
 # list_mailman_languages()
 # Returns a list of all language codes know to Mailman
-# XXX
 sub list_mailman_languages
 {
 my $tdir = $config{'mailman_templates'};
@@ -495,6 +494,9 @@ my @rv = grep { $_ !~ /^\./ &&
 		   $_ !~ /\.(txt|html)$/i &&
 		   -d "$tdir/$_" } readdir(DIR);
 closedir(DIR);
+if (!@rv) {
+	@rv = ('ca', 'de', 'en', 'eo', 'es', 'fr', 'he', 'hu', 'it', 'ja', 'ko', 'pl', 'pt', 'ru', 'sq', 'tr');
+	}
 return sort { $a cmp $b } @rv;
 }
 
