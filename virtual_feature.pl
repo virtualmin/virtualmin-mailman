@@ -106,35 +106,36 @@ return $_[1] || $_[2] ? 0 : 1;		# not for alias domains
 # Called when this feature is added, with the domain object as a parameter
 sub feature_setup
 {
-if ($config{'mode'} == 0) {
+my ($d) = @_;
+if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 	# Add postfix config
 	&$virtual_server::first_print($text{'setup_map'});
-	&virtual_server::obtain_lock_mail($_[0]);
+	&virtual_server::obtain_lock_mail($d);
 	&foreign_require("postfix", "postfix-lib.pl");
 	&virtual_server::create_replace_mapping($maillist_map,
-				 { 'name' => "lists.".$_[0]->{'dom'},
-				   'value' => "lists.".$_[0]->{'dom'} },
+				 { 'name' => "lists.".$d->{'dom'},
+				   'value' => "lists.".$d->{'dom'} },
 				 [ $maillist_file ]);
 	&postfix::regenerate_any_table($maillist_map,
 				       [ $maillist_file ]);
 	&virtual_server::create_replace_mapping($transport_map,
-				 { 'name' => "lists.".$_[0]->{'dom'},
+				 { 'name' => "lists.".$d->{'dom'},
 				   'value' => "mailman:" });
 	&postfix::regenerate_any_table($transport_map);
-	&virtual_server::release_lock_mail($_[0]);
+	&virtual_server::release_lock_mail($d);
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
 
-if ($_[0]->{'web'} && !$config{'no_redirects'}) {
+if ($d->{'web'} && !$config{'no_redirects'}) {
 	# Add server alias, and redirect for /cgi-bin/mailman and /mailman
 	# to anonymous wrappers
-	&setup_mailman_web_redirects($_[0]);
+	&setup_mailman_web_redirects($d);
 	}
 
 # Set default limit from template
-if (!exists($_[0]->{$module_name."limit"})) {
-	my $tmpl = &virtual_server::get_template($_[0]->{'template'});
-	$_[0]->{$module_name."limit"} =
+if (!exists($d->{$module_name."limit"})) {
+	my $tmpl = &virtual_server::get_template($d->{'template'});
+	$d->{$module_name."limit"} =
 		$tmpl->{$module_name."limit"} eq "none" ? "" :
 		 $tmpl->{$module_name."limit"};
 	}
@@ -144,12 +145,13 @@ if (!exists($_[0]->{$module_name."limit"})) {
 # Called when a domain with this feature is modified
 sub feature_modify
 {
-if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
+my ($d, $oldd) = @_;
+if ($d->{'dom'} ne $oldd->{'dom'}) {
 	# Domain has been re-named
-	if ($config{'mode'} == 0) {
+	if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 		# Update filtering
-		&feature_delete($_[1], 1);
-		&feature_setup($_[0]);
+		&feature_delete($oldd, 1);
+		&feature_setup($d);
 		}
 
 	# Change domain for any lists
@@ -159,8 +161,8 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	&read_file($lists_file, \%lists);
 	foreach my $f (keys %lists) {
 		my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
-		if ($dom eq $_[1]->{'dom'}) {
-			$dom = $_[0]->{'dom'};
+		if ($dom eq $oldd->{'dom'}) {
+			$dom = $d->{'dom'};
 			$lists{$f} = join("\t", $dom, $desc);
 			my $out = &backquote_logged(
 				"$withlist_cmd -l -r fix_url ".
@@ -175,17 +177,17 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	}
 
 # Change owner email, if needed
-if ($_[0]->{'emailto'} ne $_[1]->{'emailto'}) {
+if ($d->{'emailto'} ne $oldd->{'emailto'}) {
 	&$virtual_server::first_print($text{'feat_email'});
 	my %lists;
 	&read_file($lists_file, \%lists);
 	foreach my $f (keys %lists) {
 		my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
-                if ($dom eq $_[0]->{'dom'}) {
+                if ($dom eq $d->{'dom'}) {
 			# Get the owner email
 			my $owner = &get_list_config($f, "owner");
-			if ($owner =~ /'\Q$_[1]->{'emailto'}\E'/) {
-				$owner =~ s/'\Q$_[1]->{'emailto'}\E'/'$_[0]->{'emailto'}'/g;
+			if ($owner =~ /'\Q$oldd->{'emailto'}\E'/) {
+				$owner =~ s/'\Q$oldd->{'emailto'}\E'/'$d->{'emailto'}'/g;
 				&save_list_config($f, "owner", $owner);
 				}
 			}
@@ -195,8 +197,8 @@ if ($_[0]->{'emailto'} ne $_[1]->{'emailto'}) {
 	}
 
 # Setup web redirects if website was just enabled
-if (!$_[1]->{'web'} && $_[0]->{'web'} && !$config{'no_redirects'}) {
-	&setup_mailman_web_redirects($_[0]);
+if (!$oldd->{'web'} && $d->{'web'} && !$config{'no_redirects'}) {
+	&setup_mailman_web_redirects($d);
 	}
 }
 
@@ -205,14 +207,14 @@ if (!$_[1]->{'web'} && $_[0]->{'web'} && !$config{'no_redirects'}) {
 sub feature_delete
 {
 my ($d, $keep) = @_;
-if ($config{'mode'} == 0) {
+if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 	# Remove postfix config
 	&$virtual_server::first_print($text{'delete_map'});
 	&foreign_require("postfix", "postfix-lib.pl");
-	&virtual_server::obtain_lock_mail($_[0]);
+	&virtual_server::obtain_lock_mail($d);
 	my $ok = 0;
 	my $mmap = &postfix::get_maps($maillist_map, [ $maillist_file ]);
-	my ($maillist) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
+	my ($maillist) = grep { $_->{'name'} eq "lists.".$d->{'dom'} }
 				 @$mmap;
 	if ($maillist) {
 		&postfix::delete_mapping($maillist_map, $maillist);
@@ -221,14 +223,14 @@ if ($config{'mode'} == 0) {
 		$ok++;
 		}
 	my $tmap = &postfix::get_maps($transport_map);
-	my ($trans) = grep { $_->{'name'} eq "lists.".$_[0]->{'dom'} }
+	my ($trans) = grep { $_->{'name'} eq "lists.".$d->{'dom'} }
 			      @$tmap;
 	if ($trans) {
 		&postfix::delete_mapping($transport_map, $trans);
 		&postfix::regenerate_any_table($transport_map);
 		$ok++;
 		}
-	&virtual_server::release_lock_mail($_[0]);
+	&virtual_server::release_lock_mail($d);
 	if ($ok == 2) {
 		&$virtual_server::second_print(
 			$virtual_server::text{'setup_done'});
@@ -238,23 +240,23 @@ if ($config{'mode'} == 0) {
 		}
 	}
 
-if ($_[0]->{'web'} && !$config{'no_redirects'}) {
+if ($d->{'web'} && !$config{'no_redirects'}) {
 	# Remove server alias and redirects
 	&$virtual_server::first_print($text{'delete_alias'});
 	&virtual_server::require_apache();
-	&virtual_server::obtain_lock_web($_[0]);
+	&virtual_server::obtain_lock_web($d);
 	my $conf = &apache::get_config();
-	my @ports = ( $_[0]->{'web_port'},
-			 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
+	my @ports = ( $d->{'web_port'},
+			 $d->{'ssl'} ? ( $d->{'web_sslport'} ) : ( ) );
 	my $deleted;
 	foreach my $p (@ports) {
 		my ($virt, $vconf) = &virtual_server::get_apache_virtual(
-			$_[0]->{'dom'}, $p);
+			$d->{'dom'}, $p);
 		next if (!$virt);
 
 		# Remove server alias
 		my @sa = &apache::find_directive("ServerAlias", $vconf);
-		@sa = grep { $_ ne "lists.$_[0]->{'dom'}" } @sa;
+		@sa = grep { $_ ne "lists.$d->{'dom'}" } @sa;
 		&apache::save_directive("ServerAlias", \@sa, $vconf, $conf);
 
 		# Remove redirects
@@ -282,12 +284,12 @@ if ($_[0]->{'web'} && !$config{'no_redirects'}) {
 		&$virtual_server::second_print(
 			$virtual_server::text{'delete_noapache'});
 		}
-	&virtual_server::release_lock_web($_[0]);
+	&virtual_server::release_lock_web($d);
 	}
 
 # Remove mailing lists
 if (!$keep) {
-	my @lists = grep { $_->{'dom'} eq $_[0]->{'dom'} } &list_lists();
+	my @lists = grep { $_->{'dom'} eq $d->{'dom'} } &list_lists();
 	if (@lists) {
 		&$virtual_server::first_print(&text('delete_lists',
 						    scalar(@lists)));
@@ -550,7 +552,7 @@ else {
 	&write_file($lists_file, \%lists);
 
 	# Re-create aliases
-	if ($config{'mode'} == 1) {
+	if ($config{'mode'} == 1 && &get_mailman_version() < 3) {
 		&virtual_server::obtain_lock_mail($_[0]);
 		my @virts = &virtual_server::list_virtusers();
 		foreach my $l (keys %dlists) {
@@ -709,7 +711,7 @@ foreach my $p (@ports) {
 	next if (!$virt);
 
 	# Add lists.$domain alias, if in special Postfix mode
-	if ($config{'mode'} == 0) {
+	if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 		my @sa = &apache::find_directive("ServerAlias", $vconf);
 		push(@sa, "lists.$_[0]->{'dom'}");
 		&apache::save_directive("ServerAlias",
