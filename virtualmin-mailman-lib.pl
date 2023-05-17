@@ -40,12 +40,15 @@ our $config_cmd = "$mailman_dir/bin/config_list";
 our $withlist_cmd = "$mailman_dir/bin/withlist";
 our $lists_dir = "$mailman_var/lists";
 our $archives_dir = "$mailman_var/archives";
+our $domains_map = "$mailman_var/data/postfix_domains";
+our $lmtp_map = "$mailman_var/data/postfix_lmtp";
 our $maillist_map = "relay_domains";
 our $maillist_file = "$postfix_dir/maillists";
 our $transport_map = "transport_maps";
 our $cgi_dir = "$mailman_dir/cgi-bin";
 our $icons_dir = "$mailman_dir/icons";
-our $mailman_config = "$mailman_var/Mailman/mm_cfg.py";
+our $mailman_config = $config{'mailman_cfg'} ||
+		      "$mailman_var/Mailman/mm_cfg.py";
 if (!-r $mailman_config) {
 	$mailman_config = "$mailman_dir/Mailman/mm_cfg.py";
 	}
@@ -55,6 +58,8 @@ our %access = &get_module_acl();
 our $lists_file = "$module_config_directory/list-domains";
 
 our $get_mailman_version_cache;
+
+our @mailman_config_cache;
 
 # get_mailman_version()
 # Returns the mailman version number (as a float)
@@ -137,11 +142,16 @@ return &text('feat_emailman', "<tt>$mailman_dir</tt>")
 	if (!-d $mailman_dir);
 return &text('feat_emailman2', "<tt>$mailman_var</tt>")
 	if (!-d $mailman_var || !-d "$mailman_var/lists");
-if ($config{'mode'} == 0) {
+
+my %vconfig = &foreign_config("virtual-server");
+if (&get_mailman_version() >= 3) {
+	# Make sure we're using Postfix
+	return $text{'feat_epostfix2'} if ($vconfig{'mail_system'} != 0);
+	}
+elsif ($config{'mode'} == 0) {
 	# Check special postfix files
 	return &text('feat_efile', "<tt>$maillist_file</tt>")
 		if (!-r $maillist_file);
-	my %vconfig = &foreign_config("virtual-server");
 	return $text{'feat_epostfix'} if ($vconfig{'mail_system'} != 0);
 	&foreign_require("postfix", "postfix-lib.pl");
 	my @files = &postfix::get_maps_files(
@@ -151,6 +161,7 @@ if ($config{'mode'} == 0) {
 			&postfix::get_real_value($maillist_map));
 	return $text{'feat_emaillist'} if (!@files);
 	}
+
 # Make sure the www user has a valid shell, for use with su. Not needed on
 # Linux, as we can pass -s to the su command.
 if ($gconfig{'os_type'} !~ /-linux$/) {
@@ -175,6 +186,7 @@ if ($config{'append_prefix'}) {
 	}
 
 # Make sure our hostname is set properly
+# XXX
 my $conf = &get_mailman_config();
 foreach my $c ("DEFAULT_URL_HOST", "DEFAULT_EMAIL_HOST") {
 	my $url = &find_value($c, $conf);
@@ -238,7 +250,39 @@ if ($dom) {
 	&unlock_file($lists_file);
 	}
 
-if ($config{'mode'} == 1 && $dom) {
+if (&get_mailman_version() >= 3) {
+	# Setup Postfix to use Mailman LMTP
+	&foreign_require("postfix");
+	&postfix::lock_postfix_files();
+	my $lmtp = "hash:".$lmtp_map;
+	my $domains = "hash:".$domains_map;
+
+	my $tm = &postfix::get_real_value("transport_maps");
+	my @tmw = split(/\s*,\s*/, $tm);
+	if (&indexof($lmtp, @tmw) < 0) {
+		push(@tmw, $lmtp);
+		&postfix::set_current_value("transport_maps", join(", ", @tmw));
+		}
+
+	my $lrm = &postfix::get_real_value("local_recipient_maps");
+	my @lrmw = split(/\s*,\s*/, $lrm);
+	if (&indexof($lmtp, @lrmw) < 0) {
+		push(@lrmw, $lmtp);
+		&postfix::set_current_value("local_recipient_maps",
+					    join(", ", @lrmw));
+		}
+
+	my $rd = &postfix::get_real_value("relay_domains");
+	my @rdw = split(/\s*,\s*/, $rd);
+	if (&indexof($domains, @rdw) < 0) {
+		push(@rdw, $domains);
+		&postfix::set_current_value("relay_domains", join(", ", @rdw));
+		}
+	&postfix::unlock_postfix_files();
+
+	&system_logged("$mailman_cmd aliases >/dev/null 2>&1 </dev/null");
+	}
+elsif ($config{'mode'} == 1 && $dom) {
 	# Add aliases
 	&virtual_server::obtain_lock_mail()
 		if (defined(&virtual_server::obtain_lock_mail));
@@ -296,7 +340,11 @@ delete($lists{$list});
 &write_file($lists_file, \%lists);
 &unlock_file($lists_file);
 
-if ($config{'mode'} == 1) {
+if (&get_postfix_version() >= 3) {
+	# Regen Mailman-managed aliases
+	&system_logged("$mailman_cmd aliases >/dev/null 2>&1 </dev/null");
+	}
+elsif ($config{'mode'} == 1) {
 	# Remove aliases
 	my $d = &virtual_server::get_domain_by("dom", $dom);
 	&virtual_server::obtain_lock_mail($d)
@@ -321,6 +369,8 @@ if ($config{'mode'} == 1) {
 	&virtual_server::release_lock_mail()
 		if (defined(&virtual_server::release_lock_mail));
 	}
+
+return undef;
 }
 
 # list_members(&list)
@@ -337,7 +387,7 @@ if (&get_mailman_version() >= 3) {
 		push(@rv, { 'email' => $_, 'digest' => 'n' }) if (/\S+\@\S+/);
 		}
 	close($MEMS);
-	open(my $MEMS, "$mailman_cmd members -d any ".quotemeta($ld)." |");
+	open($MEMS, "$mailman_cmd members -d any ".quotemeta($ld)." |");
 	while(<$MEMS>) {
 		s/\r|\n//g;
 		push(@rv, { 'email' => $_, 'digest' => 'y' }) if (/\S+\@\S+/);
@@ -433,6 +483,7 @@ else {
 
 # list_mailman_languages()
 # Returns a list of all language codes know to Mailman
+# XXX
 sub list_mailman_languages
 {
 my $tdir = $config{'mailman_templates'};
@@ -449,7 +500,7 @@ return sort { $a cmp $b } @rv;
 
 # get_mailman_config()
 # Returns an array ref of mailman config options
-my @mailman_config_cache;
+# XXX
 sub get_mailman_config
 {
 if (!scalar(@mailman_config_cache)) {

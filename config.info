@@ -2,6 +2,7 @@ mailman_dir=Mailman base directory,3,Default
 mailman_var=Mailman data directory,3,Same as base directory
 mailman_cmd=Full path to mailman command,3,Automatic
 mailman_templates=Mailman messsage templates directory,3,Under base directory
+mailman_cfg=Full path to Mailman config file,3,Under data directory
 mode=List alias creation mode,1,1-Add normal virtusers,0-Use Postfix maillist map
 cgiuser=User to run mailman programs as,3,Apache webserver user
 no_redirects=Add Apache redirects to Webmin Mailman module?,1,0-Yes,1-No
