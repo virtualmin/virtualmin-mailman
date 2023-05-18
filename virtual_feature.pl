@@ -126,7 +126,7 @@ if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
 
-if ($d->{'web'} && !$config{'no_redirects'}) {
+if ($d->{'web'} && !$config{'no_redirects'} && &get_mailman_version() < 3) {
 	# Add server alias, and redirect for /cgi-bin/mailman and /mailman
 	# to anonymous wrappers
 	&setup_mailman_web_redirects($d);
@@ -197,7 +197,8 @@ if ($d->{'emailto'} ne $oldd->{'emailto'}) {
 	}
 
 # Setup web redirects if website was just enabled
-if (!$oldd->{'web'} && $d->{'web'} && !$config{'no_redirects'}) {
+if (!$oldd->{'web'} && $d->{'web'} && !$config{'no_redirects'} &&
+    &get_mailman_version() < 3) {
 	&setup_mailman_web_redirects($d);
 	}
 }
@@ -240,7 +241,7 @@ if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 		}
 	}
 
-if ($d->{'web'} && !$config{'no_redirects'}) {
+if ($d->{'web'} && !$config{'no_redirects'} && &get_mailman_version() < 3) {
 	# Remove server alias and redirects
 	&$virtual_server::first_print($text{'delete_alias'});
 	&virtual_server::require_apache();
@@ -307,7 +308,7 @@ if (!$keep) {
 sub feature_validate
 {
 my ($d) = @_;
-if ($d->{'web'}) {
+if ($d->{'web'} && &get_mailman_version() < 3) {
 	my ($virt, $vconf) = &virtual_server::get_apache_virtual(
 					$d->{'dom'}, $d->{'web_port'});
 	if (!$virt) {

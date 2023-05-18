@@ -188,22 +188,25 @@ print &ui_submit($text{'index_search'});
 print &ui_form_end();
 
 # Show button to correct redirects if needed
-my @urldoms;
-foreach my $d (grep { &virtual_server::can_edit_domain($_) &&
-		      $_->{$module_name} } &virtual_server::list_domains()) {
-	if (!&check_webmin_mailman_urls($d)) {
-		push(@urldoms, $d);
+if (&get_mailman_version() < 3) {
+	my @urldoms;
+	foreach my $d (grep { &virtual_server::can_edit_domain($_) &&
+			      $_->{$module_name} }
+			    &virtual_server::list_domains()) {
+		if (!&check_webmin_mailman_urls($d)) {
+			push(@urldoms, $d);
+			}
 		}
-	}
-if (@urldoms) {
-	my @hiddens = map { &ui_hidden("d", $_->{'id'}) } @urldoms;
-	print &ui_hr();
-	print &ui_buttons_start();
-	print &ui_buttons_row("fixurls.cgi", $text{'index_fixurls'},
+	if (@urldoms) {
+		my @hiddens = map { &ui_hidden("d", $_->{'id'}) } @urldoms;
+		print &ui_hr();
+		print &ui_buttons_start();
+		print &ui_buttons_row("fixurls.cgi", $text{'index_fixurls'},
 			      &text('index_fixurlsdesc', scalar(@urldoms),
 				    &get_mailman_webmin_url($urldoms[0])),
 			      join("\n", @hiddens));
-	print &ui_buttons_end();
+		print &ui_buttons_end();
+		}
 	}
 
 &ui_print_footer("/", $text{'index'});
