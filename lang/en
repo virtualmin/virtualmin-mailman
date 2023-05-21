@@ -33,6 +33,7 @@ feat_module=Virtualmin Mailman Mailing Lists (for managing lists)
 
 setup_map=Adding to Mailman domains list ..
 setup_alias=Adding Mailman alias and redirects to website configuration ..
+setup_proxy=Adding proxy to Mailman web app to website configuration ..
 
 delete_map=Removing from Mailman domains list ..
 delete_missing=.. domain not found!

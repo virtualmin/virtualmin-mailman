@@ -5,6 +5,7 @@ our (%text, %config);
 our $module_name;
 our $mailman_dir;
 our $mailman_cmd;
+our $mailman_var;
 our $maillist_map;
 our $maillist_file;
 our $transport_map;
@@ -130,6 +131,10 @@ if ($d->{'web'} && !$config{'no_redirects'} && &get_mailman_version() < 3) {
 	# Add server alias, and redirect for /cgi-bin/mailman and /mailman
 	# to anonymous wrappers
 	&setup_mailman_web_redirects($d);
+	}
+elsif ($d->{'web'} && &get_mailman_version() >= 3 && &mailman_web_installed()) {
+	# Setup proxing from /mailman to the mailman3-web socket
+	&setup_mailman_web_proxy($d);
 	}
 
 # Set default limit from template
@@ -286,6 +291,9 @@ if ($d->{'web'} && !$config{'no_redirects'} && &get_mailman_version() < 3) {
 			$virtual_server::text{'delete_noapache'});
 		}
 	&virtual_server::release_lock_web($d);
+	}
+elsif ($d->{'web'} && &get_mailman_version() >= 3) {
+	# XXX
 	}
 
 # Remove mailing lists
@@ -699,29 +707,30 @@ else {
 # Configure Apache to support mailman CGIs for this domain
 sub setup_mailman_web_redirects
 {
+my ($d) = @_;
 &$virtual_server::first_print($text{'setup_alias'});
 &virtual_server::require_apache();
-&virtual_server::obtain_lock_web($_[0]);
+&virtual_server::obtain_lock_web($d);
 my $conf = &apache::get_config();
-my @ports = ( $_[0]->{'web_port'},
-		 $_[0]->{'ssl'} ? ( $_[0]->{'web_sslport'} ) : ( ) );
+my @ports = ( $d->{'web_port'},
+	      $d->{'ssl'} ? ( $d->{'web_sslport'} ) : ( ) );
 my $added;
 foreach my $p (@ports) {
 	my ($virt, $vconf) = &virtual_server::get_apache_virtual(
-		$_[0]->{'dom'}, $p);
+		$d->{'dom'}, $p);
 	next if (!$virt);
 
 	# Add lists.$domain alias, if in special Postfix mode
 	if ($config{'mode'} == 0 && &get_mailman_version() < 3) {
 		my @sa = &apache::find_directive("ServerAlias", $vconf);
-		push(@sa, "lists.$_[0]->{'dom'}");
+		push(@sa, "lists.$d->{'dom'}");
 		&apache::save_directive("ServerAlias",
 					\@sa, $vconf, $conf);
 		}
 
 	# Add wrapper redirects
 	my @rm = &apache::find_directive("RedirectMatch", $vconf);
-	my $webminurl = &get_mailman_webmin_url($_[0]);
+	my $webminurl = &get_mailman_webmin_url($d);
 	foreach my $p ("/cgi-bin/mailman", "/mailman") {
 		my ($already) = grep { /^\Q$p\E\// } @rm;
 		if (!$already) {
@@ -753,13 +762,13 @@ else {
 	&$virtual_server::second_print(
 		$virtual_server::text{'delete_noapache'});
 	}
-&virtual_server::release_lock_web($_[0]);
+&virtual_server::release_lock_web($d);
 
 # Add the apache user to the mailman group, so that symlinks work
-my $auser = &virtual_server::get_apache_user($_[0]);
+my $auser = &virtual_server::get_apache_user($d);
 my @st = stat("$archives_dir/public");
 if ($auser && @st) {
-	&virtual_server::obtain_lock_unix($_[0]);
+	&virtual_server::obtain_lock_unix($d);
 	my ($group) = grep { $_->{'gid'} == $st[5] }
 			   &virtual_server::list_all_groups();
 	if ($group) {
@@ -778,8 +787,68 @@ if ($auser && @st) {
 				"made_changes");
 			}
 		}
-	&virtual_server::release_lock_unix($_[0]);
+	&virtual_server::release_lock_unix($d);
 	}
+}
+
+# mailman_web_installed()
+# Returns 1 if the Mailman3 web UI is installed
+sub mailman_web_installed
+{
+my $wcmd = $mailman_cmd."-web";
+return (&has_command($wcmd) || &has_command("mailman-web")) &&
+       $config{'mailman_web_sock'} &&
+       -r $config{'mailman_web_sock'};
+}
+
+# setup_mailman_web_proxy(&domain)
+# Add Apache directives to proxy traffic to the Mailman 3 web UI
+sub setup_mailman_web_proxy
+{
+my ($d) = @_;
+&$virtual_server::first_print($text{'setup_proxy'});
+&virtual_server::require_apache();
+&virtual_server::obtain_lock_web($d);
+my $conf = &apache::get_config();
+my @ports = ( $d->{'web_port'},
+	      $d->{'ssl'} ? ( $d->{'web_sslport'} ) : ( ) );
+my $sock = $config{'mailman_web_sock'};
+foreach my $p (@ports) {
+	my ($virt, $vconf) = &virtual_server::get_apache_virtual(
+		$d->{'dom'}, $p);
+	next if (!$virt);
+
+	# Aliases for static content
+	my @al = &apache::find_directive("Alias", $vconf);
+	push(@al, "/mailman3/favicon.ico $mailman_var/web/static/postorius/img/favicon.ico");
+	push(@al, "/mailman3/static $mailman_var/web/static");
+	&apache::save_directive("Alias", \@al, $vconf, $conf);
+
+	# Directory block for static content
+	my $dir = { 'name' => 'Directory',
+		    'value' => "$mailman_var/web/static",
+		    'type' => 1,
+		    'members' => [
+			{ 'name' => 'Require',
+			  'value' => 'all granted',
+			},
+			],
+		  };
+	&apache::save_directive_struct(undef, $dir, $vconf, $conf);
+
+	# ProxyPass directives
+	my @pp = &apache::find_directive("ProxyPass", $vconf);
+	push(@pp, "/mailman3/favicon.ico !",
+		  "/mailman3/static !",
+		  "/mailman3 unix:${sock}|uwsgi://localhost/");
+	&apache::save_directive("ProxyPass", \@pp, $vconf, $conf);
+	}
+&flush_file_lines();
+&virtual_server::register_post_action(
+    defined(&main::restart_apache) ? \&main::restart_apache
+			           : \&virtual_server::restart_apache);
+&$virtual_server::second_print($virtual_server::text{'setup_done'});
+&virtual_server::release_lock_web($d);
 }
 
 # feature_reset(&domain)

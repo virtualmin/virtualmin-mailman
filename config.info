@@ -10,3 +10,4 @@ webminurl=URL to Webmin in Apache configuration,3,Automatic
 manage_url=URL for Manage button,3,Built-in Mailman program wrappers
 rewriteurl=Base URL for links in Mailman UI,3,Automatic
 append_prefix=Append domain name to list names?,1,1-Yes,0-No
+mailman_web_sock=Socket file for Mailman 3 web UI,3,Not installed
