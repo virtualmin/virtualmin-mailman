@@ -1,0 +1,8 @@
+no_redirects=0
+mailman_templates=/var/lib/mailman3/messages
+mailman_dir=/var/lib/mailman3
+mailman_cmd=/usr/lib/mailman3/bin/mailman
+mailman_cfg=/etc/mailman3/mailman.cfg
+mode=1
+append_prefix=0
+mailman_web_sock=/run/mailman3-web/uwsgi.sock
