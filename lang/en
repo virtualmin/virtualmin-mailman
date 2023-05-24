@@ -34,10 +34,16 @@ feat_module=Virtualmin Mailman Mailing Lists (for managing lists)
 setup_map=Adding to Mailman domains list ..
 setup_alias=Adding Mailman alias and redirects to website configuration ..
 setup_proxy=Adding proxy to Mailman web app to website configuration ..
+setup_eproxy=.. failed : $1
+setup_emailmanweb=The mailman-web command is not installed
+setup_emailmansock=No Mailman web UI socket file set in the module configuration
+setup_emailmansock2=The Mailman web UI socket file $1 does not exist
+setup_emailmanmod=Missing Apache module $1
 
 delete_map=Removing from Mailman domains list ..
 delete_missing=.. domain not found!
 delete_alias=Removing Mailman alias and redirects from website configuration ..
+delete_proxy=Removing proxying to Mailman web app from website configuration ..
 delete_lists=Deleting $1 mailing lists ..
 
 save_map=Updating Mailman domains list ..

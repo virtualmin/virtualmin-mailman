@@ -18,6 +18,7 @@ if ($listname =~ /^mems_(\S+)$/) {
 	}
 elsif ($listname =~ /^man_(\S+)$/) {
 	# Actually managing list .. redirect
+	# XXX
 	if ($config{'manage_url'}) {
 		# Custom URL
 		my ($list) = grep { $_->{'list'} eq $1 } @lists;

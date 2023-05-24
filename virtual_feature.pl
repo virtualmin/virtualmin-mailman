@@ -132,7 +132,7 @@ if ($d->{'web'} && !$config{'no_redirects'} && &get_mailman_version() < 3) {
 	# to anonymous wrappers
 	&setup_mailman_web_redirects($d);
 	}
-elsif ($d->{'web'} && &get_mailman_version() >= 3 && &mailman_web_installed()) {
+elsif ($d->{'web'} && &get_mailman_version() >= 3) {
 	# Setup proxing from /mailman to the mailman3-web socket
 	&setup_mailman_web_proxy($d);
 	}
@@ -293,7 +293,44 @@ if ($d->{'web'} && !$config{'no_redirects'} && &get_mailman_version() < 3) {
 	&virtual_server::release_lock_web($d);
 	}
 elsif ($d->{'web'} && &get_mailman_version() >= 3) {
-	# XXX
+	# Remove proxy to mailman-web
+	&$virtual_server::first_print($text{'delete_proxy'});
+        &virtual_server::require_apache();
+        &virtual_server::obtain_lock_web($d);
+        my $conf = &apache::get_config();
+        my @ports = ( $d->{'web_port'},
+                         $d->{'ssl'} ? ( $d->{'web_sslport'} ) : ( ) );
+
+	foreach my $p (@ports) {
+		my ($virt, $vconf) = &virtual_server::get_apache_virtual(
+			$d->{'dom'}, $p);
+		next if (!$virt);
+
+		# Remove aliases to /mailman
+		my @al = &apache::find_directive("Alias", $vconf);
+		@al = grep { !/^\/mailman3\// } @al;
+		&apache::save_directive("Alias", \@al, $vconf, $conf);
+
+		# Remove directory block for static content
+		my @dirs = &apache::find_directive_struct("Directory", $vconf);
+		my ($dir) = grep { $_->{'value'} eq "$mailman_var/web/static" } @dirs;
+		if ($dir) {
+			&apache::save_directive_struct($dir, undef, $vconf, $conf);
+			}
+
+		# Remove ProxyPass for /mailman
+		my @pp = &apache::find_directive("ProxyPass", $vconf);
+		@pp = grep { !/^\/mailman3/ } @pp;
+		&apache::save_directive("ProxyPass", \@pp, $vconf, $conf);
+		}
+
+	&flush_file_lines();
+	&virtual_server::register_post_action(
+	    defined(&main::restart_apache) ? \&main::restart_apache
+				   : \&virtual_server::restart_apache);
+	&$virtual_server::second_print(
+		$virtual_server::text{'setup_done'});
+	&virtual_server::release_lock_web($d);
 	}
 
 # Remove mailing lists
@@ -792,13 +829,28 @@ if ($auser && @st) {
 }
 
 # mailman_web_installed()
-# Returns 1 if the Mailman3 web UI is installed
+# Returns undef if the Mailman3 web UI is installed, or an error message
+# otherwise
 sub mailman_web_installed
 {
 my $wcmd = $mailman_cmd."-web";
-return (&has_command($wcmd) || &has_command("mailman-web")) &&
-       $config{'mailman_web_sock'} &&
-       -r $config{'mailman_web_sock'};
+if (!&has_command($wcmd) && !&has_command("mailman-web")) {
+	return $text{'setup_emailmanweb'};
+	}
+if (!$config{'mailman_web_sock'}) {
+	return $text{'setup_emailmansock'};
+	}
+if (!-r $config{'mailman_web_sock'}) {
+	return &text('setup_emailmansock2', $config{'mailman_web_sock'});
+	}
+&virtual_server::require_apache();
+if (%apache::all_httpd_modules) {
+	foreach my $m ("proxy_uwsgi", "proxy_http", "proxy") {
+		$apache::all_httpd_modules{$m} ||
+			return &text('setup_emailmanmod', $m);
+		}
+	}
+return undef;
 }
 
 # setup_mailman_web_proxy(&domain)
@@ -807,6 +859,11 @@ sub setup_mailman_web_proxy
 {
 my ($d) = @_;
 &$virtual_server::first_print($text{'setup_proxy'});
+my $err = &mailman_web_installed();
+if ($err) {
+	&$virtual_server::second_print(&text('setup_eproxy', $err));
+	return 0;
+	}
 &virtual_server::require_apache();
 &virtual_server::obtain_lock_web($d);
 my $conf = &apache::get_config();
@@ -849,6 +906,7 @@ foreach my $p (@ports) {
 			           : \&virtual_server::restart_apache);
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 &virtual_server::release_lock_web($d);
+return 1;
 }
 
 # feature_reset(&domain)
