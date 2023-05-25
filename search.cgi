@@ -25,16 +25,17 @@ my @table;
 my $re = $in{'email'};
 foreach my $l (@lists) {
 	my @mems = &list_members($l);
+	my (undef, $adminurl) = &get_mailman_web_urls($l);
 	foreach my $m (@mems) {
 		if ($m->{'email'} =~ /\Q$re\E/i) {
 			my @acts;
-			push(@acts, "<a href='delete_member.cgi?list=".
+			push(@acts,
+			   &ui_link("delete_member.cgi?list=".
 				    &urlize($l->{'list'})."&".
 				    "show=".&urlize($in{'show'})."&".
-				    &urlize($m->{'email'})."=1'>".
-				    $text{'search_delete'}."</a>");
-			push(@acts, "<a href='admin.cgi/$l->{'list'}'>".
-				    $text{'search_man'}."</a>");
+				    &urlize($m->{'email'})."=1'>",
+				    $text{'search_delete'}));
+			push(@acts, &ui_link($adminurl, $text{'search_man'}));
 			push(@table, [ $m->{'email'},
 				       $l->{'list'},
 				       $l->{'dom'},
