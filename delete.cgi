@@ -18,17 +18,17 @@ if ($listname =~ /^mems_(\S+)$/) {
 	}
 elsif ($listname =~ /^man_(\S+)$/) {
 	# Actually managing list .. redirect
-	# XXX
+	my ($list) = grep { $_->{'list'} eq $1 } @lists;
 	if ($config{'manage_url'}) {
 		# Custom URL
-		my ($list) = grep { $_->{'list'} eq $1 } @lists;
 		my $d = &virtual_server::get_domain_by("dom", $list->{'dom'});
 		&redirect(&virtual_server::substitute_domain_template(
 				$config{'manage_url'}, $d));
 		}
 	else {
-		# Internal CGI wrappers
-		&redirect("admin.cgi/$1");
+		# Redirect to admin page
+		my ($infourl, $adminurl) = &get_mailman_web_urls($list);
+		&redirect($adminurl);
 		}
 	exit;
 	}

@@ -648,16 +648,8 @@ my ($d) = @_;
 if ($config{'cgiuser'}) {
 	return $config{'cgiuser'};
 	}
-elsif (defined(&virtual_server::get_apache_user)) {
-	return &virtual_server::get_apache_user($d);
-	}
 else {
-	foreach my $u ("www", "httpd", "apache") {
-		if (defined(getpwnam($u))) {
-			return $u;
-			}
-		}
-	return "nobody";
+	return &virtual_server::get_apache_user($d);
 	}
 }
 
@@ -666,8 +658,8 @@ else {
 sub needs_mailman_list
 {
 my $ver = &get_mailman_version();
-if ($ver < 2.1) {
-	# Older versions don't
+if ($ver < 2.1 || $ver >= 3) {
+	# Older and newer versions don't
 	return 0;
 	}
 my @lists = &list_lists();
@@ -741,6 +733,36 @@ else {
 	$webminurl .= "://$d->{'dom'}:$miniserv{'port'}";
 	}
 return $webminurl;
+}
+
+# get_mailman_web_urls(&list)
+# Returns the list info and admin URLs, if any
+sub get_mailman_web_urls
+{
+my ($list) = @_;
+return () if (!$list->{'dom'});
+my $d = &virtual_server::get_domain_by("dom", $list->{'dom'});
+return () if (!$d || !$d->{'web'});
+my ($virt, $vconf) = &virtual_server::get_apache_virtual(
+			$d->{'dom'}, $d->{'web_port'});
+return () if (!$virt);
+if (&get_mailman_version() < 3) {
+	my @rm = grep { /^\/mailman\// }
+		      &apache::find_directive("RedirectMatch", $vconf);
+	if (@rm) {
+		return ( "http://$d->{'dom'}/mailman/listinfo/$list->{'list'}",
+			 "admin.cgi/$list->{'list'}" );
+		}
+	}
+else {
+	my @pp = grep { /^\/mailman3/ }
+		      &apache::find_directive("ProxyPass", $vconf);
+	if (@pp) {
+		return ( "http://$d->{'dom'}/mailman3/listinfo/$list->{'list'}",
+			 "http://$d->{'dom'}/mailman3/admin/$list->{'list'}" );
+		}
+	}
+return ();
 }
 
 # check_webmin_mailman_urls(&domain)

@@ -29,33 +29,8 @@ if ($in{'show'}) {
 	}
 my @table;
 foreach my $l (@lists) {
-	# Check if we can link to the list info page
-	# XXX
-	my $infourl;
-	if ($l->{'dom'}) {
-		my $d = &virtual_server::get_domain_by("dom", $l->{'dom'});
-		if ($d && $d->{'web'}) {
-			my ($virt, $vconf) =
-				&virtual_server::get_apache_virtual(
-				$d->{'dom'}, $d->{'web_port'});
-			my @rm = grep { /^\/mailman\// }
-				&apache::find_directive("RedirectMatch",
-							$vconf);
-			my @pp = grep { /^\/mailman3/ }
-				&apache::find_directive("ProxyPass",
-							$vconf);
-			if (@rm) {
-				$infourl = "http://$d->{'dom'}/".
-				   "mailman/listinfo/$l->{'list'}";
-				}
-			elseif (@pp) {
-				$infourl = "http://$d->{'dom'}/".
-				   "mailman3/listinfo/$l->{'list'}";
-				}
-			}
-		}
-
 	# Add the row
+	my ($infourl) = &get_mailman_web_urls($l);
 	push(@table, [
 	    $infourl ? "<a href='$infourl'>$l->{'list'}</a>"
 		     : $l->{'list'},
