@@ -502,38 +502,67 @@ return sort { $a cmp $b } @rv;
 
 # get_mailman_config()
 # Returns an array ref of mailman config options
-# XXX
 sub get_mailman_config
 {
 if (!scalar(@mailman_config_cache)) {
-	my $lnum = 0;
-	open(my $CONF, "<", $mailman_config);
-	while(<$CONF>) {
-		s/\r|\n//g;
-		s/^\s*#.*$//;
-		if (/^\s*(\S+)\s*=\s*'(.*)'/ ||
-		    /^\s*(\S+)\s*=\s*"(.*)"/ ||
-		    /^\s*(\S+)\s*=\s*\S+/) {
-			push(@mailman_config_cache,
-				{ 'name' => $1,
-				  'value' => $2,
-				  'line' => $lnum });
+	if (&get_mailman_version() < 3) {
+		# Older name=value format
+		my $lnum = 0;
+		open(my $CONF, "<", $mailman_config);
+		while(<$CONF>) {
+			s/\r|\n//g;
+			s/^\s*#.*$//;
+			if (/^\s*(\S+)\s*=\s*'(.*)'/ ||
+			    /^\s*(\S+)\s*=\s*"(.*)"/ ||
+			    /^\s*(\S+)\s*=\s*\S+/) {
+				push(@mailman_config_cache,
+					{ 'name' => $1,
+					  'value' => $2,
+					  'line' => $lnum });
+				}
+			$lnum++;
 			}
-		$lnum++;
+		close($CONF);
 		}
-	close($CONF);
+	else {
+		# New name: value format
+		my $lnum = 0;
+		my $sect;
+		open(my $CONF, "<", $mailman_config);
+		while(<$CONF>) {
+			s/\r|\n//g;
+			s/^\s*#.*$//;
+			if (/^\s*\[(\S+)\]/) {
+				# Section header
+				$sect = $1;
+				}
+			elsif (/^\s*(\S+):\s*(.*)/) {
+				# Value in a section
+				push(@mailman_config_cache,
+					{ 'name' => $1,
+					  'value' => $2,
+					  'sect' => $sect,
+					  'line' => $lnum });
+				}
+			$lnum++;
+			}
+		close($CONF);
+		}
 	}
 return \@mailman_config_cache;
 }
 
-# find(name, &conf)
+# find(name, &conf, [section])
+# Find a value in the config
 sub find
 {
-my ($rv) = grep { $_->{'name'} eq $_[0] } @{$_[1]};
+my ($name, $conf, $sect) = @_;
+my ($rv) = grep { $_->{'name'} eq $name &&
+		  (!$sect || $_->{'sect'} eq $sect) } @$conf;
 return $rv;
 }
 
-# find_value(name, &conf)
+# find_value(name, &conf, [section])
 sub find_value
 {
 my $rv = &find(@_);
