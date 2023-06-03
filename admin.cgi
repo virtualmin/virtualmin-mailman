@@ -5,7 +5,7 @@ use warnings;
 our (%text, %config);
 our $module_name;
 our $mailman_dir;
-our $doneheaders; # XXX I'm not sure about this one.
+our $doneheaders;
 
 require './virtualmin-mailman-lib.pl';
 my $lname;
