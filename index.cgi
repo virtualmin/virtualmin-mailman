@@ -28,21 +28,22 @@ if ($in{'show'}) {
 	@lists = grep { $_->{'dom'} eq $in{'show'} } @lists;
 	}
 my @table;
+my $canreset = &can_reset_passwd();
 foreach my $l (@lists) {
 	# Add the row
-	my ($infourl) = &get_mailman_web_urls($l);
+	my ($infourl, $adminurl) = &get_mailman_web_urls($l);
 	push(@table, [
-	    $infourl ? "<a href='$infourl'>$l->{'list'}</a>"
+	    $infourl ? &ui_link($infourl, $l->{'list'}, "", "target=_blank")
 		     : $l->{'list'},
 	    $l->{'dom'} || "<i>$text{'index_nodom'}</i>",
 	    $l->{'desc'},
 	    &ui_submit($text{'delete'}, $l->{'list'},
 		       $l->{'list'} eq 'mailman')." ".
 	    &ui_submit($text{'index_mems'}, "mems_".$l->{'list'})." ".
-	    &ui_submit($text{'index_man'}, "man_".$l->{'list'})." ".
-	    (-x $changepw_cmd ?
-	      &ui_submit($text{'index_reset'}, "reset_".$l->{'list'}) :
-	      "")
+	    ($adminurl ?
+	      &ui_submit($text{'index_man'}, "man_".$l->{'list'})." " : "").
+	    ($canreset ?
+	      &ui_submit($text{'index_reset'}, "reset_".$l->{'list'}) : "")
 	    ]);
 	}
 
@@ -144,6 +145,35 @@ if (&virtual_server::master_admin() && &needs_mailman_list()) {
 	print &ui_table_end();
 	print &ui_submit($text{'create'});
 	print &ui_form_end();
+	}
+
+# Show a form to create a superuser
+if (&virtual_server::master_admin() && &get_mailman_version() >= 3) {
+	print &ui_hr();
+	my @supes = &list_django_superusers();
+	if (@supes) {
+		print &text('index_sugot', "<tt>".join(' ', @supes)."</tt>"),"<p>\n";
+		}
+	else {
+		print $text{'index_suneed'},"<p>\n";
+		}
+
+	print &ui_form_start("super.cgi");
+	print &ui_table_start($text{'index_suheader'}, undef, 2);
+
+	print &ui_table_row($text{'index_suser'},
+		    &ui_textbox("suser", undef, 30));
+
+	print &ui_table_row($text{'index_semail'},
+		    &ui_textbox("semail", undef, 30));
+
+	print &ui_table_row($text{'index_spass'},
+		    &ui_textbox("spass", undef, 30));
+
+	print &ui_table_end();
+	print &ui_submit($text{'create'});
+	print &ui_form_end();
+
 	}
 
 # Form to search for members

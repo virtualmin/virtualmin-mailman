@@ -833,8 +833,8 @@ if ($auser && @st) {
 # otherwise
 sub mailman_web_installed
 {
-my $wcmd = $mailman_cmd."-web";
-if (!&has_command($wcmd) && !&has_command("mailman-web")) {
+my $wcmd = &get_mailman_web_cmd();
+if (!$wcmd) {
 	return $text{'setup_emailmanweb'};
 	}
 if (!$config{'mailman_web_sock'}) {

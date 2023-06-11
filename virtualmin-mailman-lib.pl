@@ -1,4 +1,6 @@
 # Functions for setting up mailman mailing lists, for a virtual domain
+# XXX form to create superuser if missing
+
 use strict;
 use warnings;
 our (%text, %config, %gconfig);
@@ -186,12 +188,13 @@ if ($config{'append_prefix'}) {
 	}
 
 # Make sure our hostname is set properly
-# XXX
-my $conf = &get_mailman_config();
-foreach my $c ("DEFAULT_URL_HOST", "DEFAULT_EMAIL_HOST") {
-	my $url = &find_value($c, $conf);
-	if ($url && $url =~ /has_not_been_edited|hardy2/) {
-		&save_directive($conf, $c, &get_system_hostname());
+if (&get_mailman_version() < 3) {
+	my $conf = &get_mailman_config();
+	foreach my $c ("DEFAULT_URL_HOST", "DEFAULT_EMAIL_HOST") {
+		my $url = &find_value($c, $conf);
+		if ($url && $url =~ /has_not_been_edited|hardy2/) {
+			&save_directive($conf, $c, &get_system_hostname());
+			}
 		}
 	}
 
@@ -787,8 +790,7 @@ else {
 	my @pp = grep { /^\/mailman3/ }
 		      &apache::find_directive("ProxyPass", $vconf);
 	if (@pp) {
-		return ( "http://$d->{'dom'}/mailman3/listinfo/$list->{'list'}",
-			 "http://$d->{'dom'}/mailman3/admin/$list->{'list'}" );
+		return ( "http://$d->{'dom'}/mailman3/postorius/lists/$list->{'list'}.$list->{'dom'}/", undef );
 		}
 	}
 return ();
@@ -838,6 +840,65 @@ foreach my $p (@ports) {
 	&flush_file_lines($virt->{'file'});
 	}
 &virtual_server::register_post_action(\&virtual_server::restart_apache);
+return undef;
+}
+
+sub can_reset_passwd
+{
+return &get_mailman_version() < 3 && -x $changepw_cmd;
+}
+
+# get_mailman_web_cmd()
+# Returns the path to the mailman-web command, if installed
+sub get_mailman_web_cmd
+{
+my $wcmd = $mailman_cmd."-web";
+return &has_command($wcmd) || &has_command("mailman-web");
+}
+
+# list_django_superusers()
+# Returns the details of all Django superusers (Mailman 3 only)
+sub list_django_superusers
+{
+my $temp = &transname();
+open(my $fh, ">$temp");
+print $fh "from django.contrib.auth.models import User\n",
+	  "superusers = User.objects.filter(is_superuser=True)\n",
+	  "print(' '.join([user.username for user in superusers]))\n";
+close($fh);
+my $wcmd = &get_mailman_web_cmd();
+return () if (!$wcmd);
+my $out = &backquote_command("$wcmd shell <$temp 2>/dev/null");
+return () if ($?);
+$out =~ s/\r|\n//;
+return split(/\s+/, $out);
+}
+
+# create_django_superuser(login, email, password)
+# Attempts to create a new Django admin user
+sub create_django_superuser
+{
+my ($user, $email, $pass) = @_;
+my $wcmd = &get_mailman_web_cmd();
+return $text{'super_ewcmd'} if (!$wcmd);
+my $out = &backquote_logged("$wcmd createsuperuser --noinput --username ".quotemeta($user)." --email ".quotemeta($email)." </dev/null 2>&1");
+return $out if ($?);
+return &set_django_superuser_pass($user, $pass);
+}
+
+# set_django_superuser_pass(login, password)
+# Set the password for a Django login
+sub set_django_superuser_pass
+{
+my ($user, $pass) = @_;
+my $wcmd = &get_mailman_web_cmd();
+return $text{'super_ewcmd'} if (!$wcmd);
+&foreign_require("proc");
+my ($fh, $pid) = &proc::pty_process_exec(
+	"$wcmd changepassword ".quotemeta($user));
+print $fh $pass,"\n";
+print $fh $pass,"\n";
+close($fh);
 return undef;
 }
 

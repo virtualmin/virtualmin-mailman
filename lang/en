@@ -79,6 +79,12 @@ index_sdoms0=Only lists in this domain
 index_search=Search
 index_fixurls=Fix Mailman URLs
 index_fixurlsdesc=Virtualmin has detected that $1 virtual servers have mailman redirect URLs that do not match the Virtualmin base URL like <tt>$2</tt>. Click this button to correct them.
+index_sugot=Mailman administrator logins $1 already exist and can be used to manage lists via the web UI. But you can use the form below to create a new administrator or update an existing one.
+index_suneed=No Mailman administrator logins have been created yet. Use the form below to create one, so you can manage lists via the web UI.
+index_suheader=New Mailman administrator details
+index_suser=Administrator login
+index_semail=Administrator email address
+index_spass=Administrator password
 
 add_err=Failed to create mailing list
 add_ename=Missing or invalid list name - only letters, numbers, dot, dash and underscore are allowed
@@ -162,4 +168,11 @@ fixurls_title=Fixing Mailman URLs
 fixurls_fixing=Fixing virtual server $1 to use $2 ..
 fixurls_failed=.. failed : $1
 fixurls_done=.. done
+
+super_err=Failed to create administrator
+super_esuser=Missing or invalid-looking username
+super_esemail=Missing or invalid-looking email address
+super_espass=Missing password
+super_ewcmd=Mailman web command not installed!
+
 __norefs=1
