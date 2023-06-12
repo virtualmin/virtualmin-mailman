@@ -5,6 +5,7 @@ use strict;
 use warnings;
 our (%text, %config, %gconfig);
 our $module_config_directory;
+our $module_root_directory;
 our $module_name;
 
 BEGIN { push(@INC, ".."); };
@@ -891,15 +892,17 @@ return &set_django_superuser_pass($user, $pass);
 sub set_django_superuser_pass
 {
 my ($user, $pass) = @_;
+length($pass) >= 8 || return &text('super_epasslen', 8);
 my $wcmd = &get_mailman_web_cmd();
 return $text{'super_ewcmd'} if (!$wcmd);
-&foreign_require("proc");
-my ($fh, $pid) = &proc::pty_process_exec(
-	"$wcmd changepassword ".quotemeta($user));
+my $temp = &transname();
+open(my $fh, ">$temp");
 print $fh $pass,"\n";
 print $fh $pass,"\n";
 close($fh);
-return undef;
+my $perl = &get_perl_path();
+my $out = &backquote_logged("$perl $module_root_directory/pty.pl --sleep 1 $wcmd changepassword ".quotemeta($user)." <$temp 2>&1");
+return $? ? $out : undef;
 }
 
 1;

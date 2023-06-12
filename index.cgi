@@ -147,7 +147,7 @@ if (&virtual_server::master_admin() && &needs_mailman_list()) {
 	print &ui_form_end();
 	}
 
-# Show a form to create a superuser
+# Show form to create a superuser
 if (&virtual_server::master_admin() && &get_mailman_version() >= 3) {
 	print &ui_hr();
 	my @supes = &list_django_superusers();
@@ -159,21 +159,20 @@ if (&virtual_server::master_admin() && &get_mailman_version() >= 3) {
 		}
 
 	print &ui_form_start("super.cgi");
-	print &ui_table_start($text{'index_suheader'}, undef, 2);
+	print &ui_table_start($text{'index_suheader'}, undef, 4);
 
 	print &ui_table_row($text{'index_suser'},
 		    &ui_textbox("suser", undef, 30));
 
-	print &ui_table_row($text{'index_semail'},
-		    &ui_textbox("semail", undef, 30));
-
 	print &ui_table_row($text{'index_spass'},
 		    &ui_textbox("spass", undef, 30));
+
+	print &ui_table_row($text{'index_semail'},
+		    &ui_textbox("semail", undef, 60), 3);
 
 	print &ui_table_end();
 	print &ui_submit($text{'create'});
 	print &ui_form_end();
-
 	}
 
 # Form to search for members
