@@ -1,6 +1,6 @@
 desc=Virtualmin Mailman Mailing Lists
 depends=virtual-server/4.13 postfix 1.420
 category=servers
-version=6.10
+version=6.11
 readonly=1
 feedback=jcameron@webmin.com
