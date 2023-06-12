@@ -901,7 +901,9 @@ print $fh $pass,"\n";
 print $fh $pass,"\n";
 close($fh);
 my $perl = &get_perl_path();
-my $out = &backquote_logged("$perl $module_root_directory/pty.pl --sleep 1 $wcmd changepassword ".quotemeta($user)." <$temp 2>&1");
+sleep(10);
+my $out = &backquote_with_timeout("$perl $module_root_directory/pty.pl --sleep 1 $wcmd changepassword ".quotemeta($user)." <$temp 2>&1", 5);
+$out =~ s/^PTY\s+PID:\s+\d+\s*//;
 return $? ? $out : undef;
 }
 
