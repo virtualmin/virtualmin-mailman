@@ -83,7 +83,7 @@ index_sugot=Mailman administrator logins $1 already exist and can be used to man
 index_suneed=No Mailman administrator logins have been created yet. Use the form below to create one, so you can manage lists via the web UI.
 index_suheader=Create Mailman administrator
 index_suser=Administrator login
-index_semail=Administrator email address
+index_semail2=Administrator email address
 index_spass=Administrator password
 
 add_err=Failed to create mailing list

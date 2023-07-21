@@ -167,7 +167,7 @@ if (&virtual_server::master_admin() && &get_mailman_version() >= 3) {
 	print &ui_table_row($text{'index_spass'},
 		    &ui_textbox("spass", undef, 30));
 
-	print &ui_table_row($text{'index_semail'},
+	print &ui_table_row($text{'index_semail2'},
 		    &ui_textbox("semail", undef, 60), 3);
 
 	print &ui_table_end();
