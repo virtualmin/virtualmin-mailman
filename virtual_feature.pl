@@ -434,7 +434,7 @@ my ($d) = @_;
 return ( { 'mod' => $module_name,
 	   'desc' => $text{'links_link'},
 	   'page' => 'index.cgi?show='.$d->{'dom'},
-	   'cat' => 'services',
+	   'cat' => 'mail',
 	 } );
 }
 
