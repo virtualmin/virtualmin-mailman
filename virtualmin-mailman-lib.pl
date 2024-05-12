@@ -344,7 +344,7 @@ delete($lists{$list});
 &write_file($lists_file, \%lists);
 &unlock_file($lists_file);
 
-if (&get_postfix_version() >= 3) {
+if (&postfix::get_postfix_version() >= 3) {
 	# Regen Mailman-managed aliases
 	&system_logged("$mailman_cmd aliases >/dev/null 2>&1 </dev/null");
 	}
