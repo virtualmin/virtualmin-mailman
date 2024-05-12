@@ -93,9 +93,12 @@ my %lists;
 &read_file($lists_file, \%lists);
 opendir(DIR, $lists_dir);
 my ($f, $fdom);
+my $ver = &get_mailman_version();
 while($f = readdir(DIR)) {
 	next if ($f eq "." || $f eq "..");
-	($f, $fdom) = split(/\./, $f, 2);
+	if ($ver >= 3) {
+		($f, $fdom) = split(/\./, $f, 2);
+		}
 	next if (!$lists{$f});
 	my ($dom, $desc) = split(/\t+/, $lists{$f}, 2);
 	if (!$desc && $f eq 'mailman') {
