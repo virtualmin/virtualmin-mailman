@@ -12,6 +12,9 @@ BEGIN { push(@INC, ".."); };
 eval "use WebminCore;";
 &init_config();
 &foreign_require("virtual-server", "virtual-server-lib.pl");
+if (&foreign_check("postfix")) {
+	&foreign_require("postfix");
+	}
 
 my %pconfig = &foreign_config("postfix");
 my $postfix_dir;
@@ -159,7 +162,6 @@ elsif ($config{'mode'} == 0) {
 	return &text('feat_efile', "<tt>$maillist_file</tt>")
 		if (!-r $maillist_file);
 	return $text{'feat_epostfix'} if ($vconfig{'mail_system'} != 0);
-	&foreign_require("postfix", "postfix-lib.pl");
 	my @files = &postfix::get_maps_files(
 			&postfix::get_real_value($transport_map));
 	return $text{'feat_etransport'} if (!@files);
@@ -259,7 +261,6 @@ if ($dom) {
 
 if (&get_mailman_version() >= 3) {
 	# Setup Postfix to use Mailman LMTP
-	&foreign_require("postfix");
 	&postfix::lock_postfix_files();
 	my $lmtp = "hash:".$lmtp_map;
 	my $domains = "hash:".$domains_map;
