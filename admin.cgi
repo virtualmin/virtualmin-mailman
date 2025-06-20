@@ -117,13 +117,20 @@ while(<$CGI>) {
 	}
 close($CGI);
 
+# Mailman CGIs output high-ascii characters, which we need to convert to
+# HTML entities
+my $emap = &load_entities_map();
+$emap = { reverse(%$emap) };
+
 print $headers;
 my $title;
 if ($body =~ /<title>([^>]*)<\/title>/i) {
 	$title = $1;
 	}
+$title =~ s/([\200-\377])/&$emap->{ord($1)};/g;
 $body =~ s/^[\000-\377]*<body[^>]*>//i;
 $body =~ s/<\/body[^>]*>[\000-\377]*//i;
+$body =~ s/([\200-\377])/&$emap->{ord($1)};/g;
 &ui_print_header(undef, $title, "");
 print $body;
 &ui_print_footer("", $text{'index_return'});
