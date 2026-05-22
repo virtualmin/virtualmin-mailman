@@ -1,4 +1,4 @@
-name: "virtualmin.dev: virtualmin/virtualmin-mailman"
+name: Build
 
 on:
   push:
